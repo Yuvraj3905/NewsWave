@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNewsFilter } from './LocationContext';
 import { LANG_LABELS, LANG_OPTIONS, useLanguage } from './LanguageContext';
 import { api } from '@/lib/api';
@@ -38,6 +38,8 @@ export function Header() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     api
@@ -65,6 +67,45 @@ export function Header() {
         ),
       );
   }, []);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [moreOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen && !moreOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileOpen(false);
+        setMoreOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [mobileOpen, moreOpen]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (mobileOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [mobileOpen]);
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearch('');
+  };
 
   return (
     <header className="bg-white sticky top-0 z-40 shadow-sm">
@@ -101,6 +142,8 @@ export function Header() {
             className="lg:hidden p-2 -ml-2 text-navy-900"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav-panel"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 6h18M3 12h18M3 18h18" />
@@ -134,24 +177,47 @@ export function Header() {
               />
             ))}
             {categories.length > 6 && (
-              <div className="relative group">
-                <button className="px-3 py-2 text-navy-700 hover:text-brand-600 transition flex items-center gap-1">
+              <div className="relative" ref={moreRef}>
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={moreOpen}
+                  className="px-3 py-2 text-navy-700 hover:text-brand-600 transition flex items-center gap-1"
+                >
                   More
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`}
+                  >
                     <path d="M6 9l6 6 6-6" />
                   </svg>
                 </button>
-                <div className="absolute right-0 top-full mt-1 bg-white border border-navy-100 shadow-lg rounded-md py-2 min-w-[160px] hidden group-hover:block z-50">
-                  {categories.slice(6).map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => setCategory(c.slug)}
-                      className="block w-full text-left px-4 py-1.5 text-sm text-navy-700 hover:bg-surface-100 hover:text-brand-600"
-                    >
-                      {c.name}
-                    </button>
-                  ))}
-                </div>
+                {moreOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-full mt-1 bg-white border border-navy-100 shadow-lg rounded-md py-2 min-w-[160px] z-50"
+                  >
+                    {categories.slice(6).map((c) => (
+                      <button
+                        key={c.id}
+                        role="menuitem"
+                        onClick={() => {
+                          setCategory(c.slug);
+                          setMoreOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-1.5 text-sm text-navy-700 hover:bg-surface-100 hover:text-brand-600"
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </nav>
@@ -159,8 +225,12 @@ export function Header() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               className="p-2 text-navy-700 hover:text-brand-600"
-              onClick={() => setSearchOpen((v) => !v)}
+              onClick={() => {
+                if (searchOpen) closeSearch();
+                else setSearchOpen(true);
+              }}
               aria-label="Search"
+              aria-expanded={searchOpen}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="7" />
@@ -208,13 +278,31 @@ export function Header() {
                   Clear
                 </button>
               )}
+              <button
+                type="button"
+                onClick={closeSearch}
+                className="text-xs text-navy-500 hover:text-brand-500 px-2"
+                aria-label="Close search"
+              >
+                Close
+              </button>
             </div>
           </div>
         )}
 
         {mobileOpen && (
-          <div className="lg:hidden border-t border-navy-100 bg-white">
-            <div className="max-w-7xl mx-auto px-4 py-3 space-y-3">
+          <>
+            <button
+              type="button"
+              aria-label="Close menu overlay"
+              onClick={() => setMobileOpen(false)}
+              className="lg:hidden fixed inset-0 top-[var(--mobile-menu-offset,0px)] bg-black/30 z-30"
+            />
+            <div
+              id="mobile-nav-panel"
+              className="lg:hidden border-t border-navy-100 bg-white relative z-40"
+            >
+              <div className="max-w-7xl mx-auto px-4 py-3 space-y-3">
               <select
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -259,8 +347,9 @@ export function Header() {
                   </button>
                 ))}
               </div>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </header>

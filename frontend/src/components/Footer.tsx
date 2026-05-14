@@ -41,7 +41,7 @@ export function Footer() {
             Quick Links
           </h4>
           <ul className="text-sm space-y-2 text-navy-200">
-            <li><Link href="/" className="hover:text-white">About Us</Link></li>
+            <li><Link href="/about" className="hover:text-white">About Us</Link></li>
             <li><Link href="/contact" className="hover:text-white">Contact Us</Link></li>
             <li><Link href="/privacy" className="hover:text-white">Privacy Policy</Link></li>
             <li><Link href="/terms" className="hover:text-white">Terms &amp; Conditions</Link></li>

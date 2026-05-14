@@ -38,7 +38,7 @@ export function GoogleTranslate() {
   return (
     <div
       id="google_translate_element"
-      className="fixed bottom-4 right-4 z-50 bg-white rounded shadow-card p-1.5 border border-ink-300/40"
+      className="google-translate-host fixed bottom-4 right-4 z-50"
       aria-label="Translate this page"
     />
   );
