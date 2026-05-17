@@ -11,11 +11,28 @@ async function bootstrap() {
 
   const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
     .split(',')
-    .map((s) => s.trim());
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const allowAll = corsOrigins.includes('*');
+
+  const matchOrigin = (origin: string) =>
+    corsOrigins.some((entry) => {
+      if (entry === '*') return true;
+      if (entry.startsWith('*.')) {
+        const suffix = entry.slice(1);
+        return origin.endsWith(suffix);
+      }
+      return origin === entry;
+    });
 
   app.enableCors({
-    origin: corsOrigins,
-    credentials: true,
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true);
+      if (matchOrigin(origin)) return cb(null, true);
+      return cb(new Error(`CORS blocked: ${origin}`), false);
+    },
+    credentials: !allowAll,
   });
 
   app.setGlobalPrefix('api', { exclude: ['health'] });
