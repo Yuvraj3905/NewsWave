@@ -28,7 +28,9 @@ import { Manager } from './managers/manager.entity';
           ? { rejectUnauthorized: false }
           : false,
       entities: [Article, Category, Location, Subscriber, Manager],
-      synchronize: process.env.NODE_ENV !== 'production',
+      synchronize: process.env.DATABASE_SYNCHRONIZE
+        ? process.env.DATABASE_SYNCHRONIZE === 'true'
+        : process.env.NODE_ENV !== 'production',
       autoLoadEntities: true,
     }),
     AuthModule,
