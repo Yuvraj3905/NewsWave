@@ -3,15 +3,15 @@ export const metadata = { title: 'Correction & Complaint Policy' };
 export default function CorrectionPolicyPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <div className="bg-white rounded-lg border border-navy-100 shadow-card p-6 sm:p-8">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-navy-900 mb-2">
+      <div className="bg-white rounded-lg border border-navy-100 shadow-card p-6 sm:p-8 dark:bg-navy-800 dark:border-navy-700">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-navy-900 mb-2 dark:text-white">
           Correction &amp; Complaint Policy
         </h1>
-        <p className="text-sm text-navy-500 mb-6">Last updated: May 2026</p>
+        <p className="text-sm text-navy-500 mb-6 dark:text-navy-300">Last updated: May 2026</p>
 
-        <div className="space-y-5 text-sm text-navy-700 leading-relaxed">
+        <div className="space-y-5 text-sm text-navy-700 leading-relaxed dark:text-navy-200">
           <section>
-            <h2 className="font-bold text-navy-900 text-base mb-1">
+            <h2 className="font-bold text-navy-900 text-base mb-1 dark:text-white">
               1. Our Commitment to Accuracy
             </h2>
             <p>
@@ -22,7 +22,7 @@ export default function CorrectionPolicyPage() {
           </section>
 
           <section>
-            <h2 className="font-bold text-navy-900 text-base mb-1">
+            <h2 className="font-bold text-navy-900 text-base mb-1 dark:text-white">
               2. How Corrections Are Made
             </h2>
             <p>
@@ -34,7 +34,7 @@ export default function CorrectionPolicyPage() {
           </section>
 
           <section>
-            <h2 className="font-bold text-navy-900 text-base mb-1">
+            <h2 className="font-bold text-navy-900 text-base mb-1 dark:text-white">
               3. Filing a Complaint or Correction Request
             </h2>
             <p>
@@ -53,7 +53,7 @@ export default function CorrectionPolicyPage() {
           </section>
 
           <section>
-            <h2 className="font-bold text-navy-900 text-base mb-1">
+            <h2 className="font-bold text-navy-900 text-base mb-1 dark:text-white">
               4. Review Timeline
             </h2>
             <p>
@@ -65,7 +65,7 @@ export default function CorrectionPolicyPage() {
           </section>
 
           <section>
-            <h2 className="font-bold text-navy-900 text-base mb-1">
+            <h2 className="font-bold text-navy-900 text-base mb-1 dark:text-white">
               5. Editorial Transparency
             </h2>
             <p>
@@ -76,7 +76,7 @@ export default function CorrectionPolicyPage() {
           </section>
 
           <section>
-            <h2 className="font-bold text-navy-900 text-base mb-1">
+            <h2 className="font-bold text-navy-900 text-base mb-1 dark:text-white">
               6. Right of Reply
             </h2>
             <p>
@@ -87,7 +87,7 @@ export default function CorrectionPolicyPage() {
           </section>
 
           <section>
-            <h2 className="font-bold text-navy-900 text-base mb-1">
+            <h2 className="font-bold text-navy-900 text-base mb-1 dark:text-white">
               7. Contact
             </h2>
             <p>

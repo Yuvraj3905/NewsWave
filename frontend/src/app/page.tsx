@@ -13,10 +13,10 @@ export default function HomePage() {
         <div className="grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="space-y-6">
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-navy-900">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-navy-900 dark:text-white">
                 Today&apos;s News
               </h1>
-              <p className="text-sm text-navy-500 mt-1">
+              <p className="text-sm text-navy-500 mt-1 dark:text-navy-300">
                 Latest headlines, filtered by your selected location and category.
               </p>
             </div>

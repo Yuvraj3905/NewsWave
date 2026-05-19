@@ -43,8 +43,8 @@ export function ExploreMore() {
   }, []);
 
   return (
-    <section className="bg-white border border-navy-100 rounded-lg shadow-card p-4 sm:p-5">
-      <h3 className="font-bold text-navy-900 uppercase text-sm tracking-wider mb-3">
+    <section className="bg-white border border-navy-100 rounded-lg shadow-card p-4 sm:p-5 dark:bg-navy-800 dark:border-navy-700">
+      <h3 className="font-bold text-navy-900 uppercase text-sm tracking-wider mb-3 dark:text-white">
         Explore More
       </h3>
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
@@ -55,7 +55,7 @@ export function ExploreMore() {
               setCategory(c.slug);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-md border border-navy-100 hover:border-brand-500 hover:bg-brand-50 text-navy-700 text-sm font-semibold transition"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-md border border-navy-100 hover:border-brand-500 hover:bg-brand-50 text-navy-700 text-sm font-semibold transition dark:border-navy-700 dark:text-navy-100 dark:hover:bg-navy-700"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-brand-500 shrink-0">
               <path d={iconFor(c.name)} />

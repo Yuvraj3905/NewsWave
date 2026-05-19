@@ -23,16 +23,16 @@ export function TrendingNow() {
   if (items.length === 0) return null;
 
   return (
-    <section className="bg-white border border-navy-100 rounded-lg shadow-card overflow-hidden">
-      <div className="px-4 py-3 border-b border-navy-100 flex items-center gap-2">
+    <section className="bg-white border border-navy-100 rounded-lg shadow-card overflow-hidden dark:bg-navy-800 dark:border-navy-700">
+      <div className="px-4 py-3 border-b border-navy-100 flex items-center gap-2 dark:border-navy-700">
         <span className="text-brand-500 text-lg">&#128293;</span>
-        <h3 className="font-bold text-navy-900 uppercase text-sm tracking-wider">
+        <h3 className="font-bold text-navy-900 uppercase text-sm tracking-wider dark:text-white">
           Trending Now
         </h3>
       </div>
-      <ul className="divide-y divide-navy-100">
+      <ul className="divide-y divide-navy-100 dark:divide-navy-700">
         {items.map((a, idx) => (
-          <li key={a.id} className="hover:bg-surface-50 transition">
+          <li key={a.id} className="hover:bg-surface-50 transition dark:hover:bg-navy-700">
             <Link
               href={`/article/${a.slug}`}
               className="flex items-center gap-3 p-3 group"
@@ -43,7 +43,7 @@ export function TrendingNow() {
                 loading="lazy"
                 className="w-12 h-12 rounded object-cover shrink-0"
               />
-              <p className="text-[13px] font-semibold text-navy-900 leading-snug line-clamp-2 flex-1 group-hover:text-brand-600">
+              <p className="text-[13px] font-semibold text-navy-900 leading-snug line-clamp-2 flex-1 group-hover:text-brand-600 dark:text-navy-50 dark:group-hover:text-brand-300">
                 {a.title}
               </p>
               <span className={`text-sm font-bold w-5 text-center shrink-0 ${idx < 3 ? 'text-brand-500' : 'text-navy-400'}`}>
