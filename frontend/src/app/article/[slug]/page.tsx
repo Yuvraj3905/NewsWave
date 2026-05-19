@@ -68,7 +68,7 @@ export default async function ArticlePage({ params }: PageProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
       <div className="grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <article className="bg-white rounded-lg border border-navy-100 shadow-card overflow-hidden">
+        <article className="bg-white rounded-lg border border-navy-100 shadow-card overflow-hidden dark:bg-navy-800 dark:border-navy-700">
           {article.image_url && (
             <img
               src={article.image_url}
@@ -90,25 +90,25 @@ export default async function ArticlePage({ params }: PageProps) {
               {article.locations?.map((l) => (
                 <span
                   key={l.id}
-                  className="text-[11px] uppercase tracking-wider font-semibold bg-navy-100 text-navy-700 px-2.5 py-1 rounded-full"
+                  className="text-[11px] uppercase tracking-wider font-semibold bg-navy-100 text-navy-700 px-2.5 py-1 rounded-full dark:bg-navy-700 dark:text-navy-100"
                 >
                   {l.name}
                 </span>
               ))}
             </div>
 
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-navy-900 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-navy-900 leading-tight dark:text-white">
               {article.title}
             </h1>
 
-            <div className="mt-4 text-sm text-navy-500 flex flex-wrap gap-x-4 gap-y-1">
+            <div className="mt-4 text-sm text-navy-500 flex flex-wrap gap-x-4 gap-y-1 dark:text-navy-300">
               <span>By {article.author || 'NewsWave Desk'}</span>
               <span>{formatIST(article.created_at)}</span>
               <span>{article.views} views</span>
             </div>
 
             {article.description && (
-              <p className="mt-5 text-base sm:text-lg text-navy-700 leading-relaxed border-l-4 border-brand-500 pl-4 italic">
+              <p className="mt-5 text-base sm:text-lg text-navy-700 leading-relaxed border-l-4 border-brand-500 pl-4 italic dark:text-navy-200">
                 {article.description}
               </p>
             )}
@@ -123,7 +123,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
             {gallery.length > 0 && (
               <section className="mt-8">
-                <h2 className="text-xl font-bold text-navy-900 mb-4">
+                <h2 className="text-xl font-bold text-navy-900 mb-4 dark:text-white">
                   Photo Gallery
                 </h2>
                 <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
@@ -152,14 +152,14 @@ export default async function ArticlePage({ params }: PageProps) {
               </section>
             )}
 
-            <hr className="my-8 border-navy-100" />
+            <hr className="my-8 border-navy-100 dark:border-navy-700" />
 
             <section>
-              <h2 className="text-xl font-bold text-navy-900 mb-4">
+              <h2 className="text-xl font-bold text-navy-900 mb-4 dark:text-white">
                 Similar News
               </h2>
               {related.length === 0 ? (
-                <p className="text-sm text-navy-500">No related articles yet.</p>
+                <p className="text-sm text-navy-500 dark:text-navy-300">No related articles yet.</p>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {related.map((r) => (

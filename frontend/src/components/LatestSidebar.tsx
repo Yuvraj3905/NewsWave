@@ -25,30 +25,30 @@ export function LatestSidebar() {
   }, [language]);
 
   return (
-    <section className="bg-white border border-navy-100 rounded-lg shadow-card overflow-hidden">
-        <div className="px-4 py-3 border-b border-navy-100 flex items-center justify-between">
+    <section className="bg-white border border-navy-100 rounded-lg shadow-card overflow-hidden dark:bg-navy-800 dark:border-navy-700">
+        <div className="px-4 py-3 border-b border-navy-100 flex items-center justify-between dark:border-navy-700">
           <div className="flex items-center gap-2">
             <span className="w-1 h-5 bg-brand-500 rounded-sm" />
-            <h3 className="font-bold text-navy-900 uppercase text-sm tracking-wider">
+            <h3 className="font-bold text-navy-900 uppercase text-sm tracking-wider dark:text-white">
               Latest Headlines
             </h3>
           </div>
           <Link
             href="/"
-            className="text-xs text-brand-500 hover:text-brand-600 font-semibold"
+            className="text-xs text-brand-500 hover:text-brand-600 font-semibold dark:text-brand-300 dark:hover:text-brand-200"
           >
             View All
           </Link>
         </div>
-        <ol className="divide-y divide-navy-100">
+        <ol className="divide-y divide-navy-100 dark:divide-navy-700">
           {loading && (
-            <li className="p-4 text-sm text-navy-500">Loading headlines...</li>
+            <li className="p-4 text-sm text-navy-500 dark:text-navy-300">Loading headlines...</li>
           )}
           {!loading && items.length === 0 && (
-            <li className="p-4 text-sm text-navy-500">No headlines yet.</li>
+            <li className="p-4 text-sm text-navy-500 dark:text-navy-300">No headlines yet.</li>
           )}
           {items.map((a, idx) => (
-            <li key={a.id} className="p-3 hover:bg-surface-50 transition group">
+            <li key={a.id} className="p-3 hover:bg-surface-50 transition group dark:hover:bg-navy-700">
               <Link
                 href={`/article/${a.slug}`}
                 className="flex items-start gap-3"
@@ -63,10 +63,10 @@ export function LatestSidebar() {
                   className="w-12 h-12 rounded object-cover shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-navy-900 leading-snug line-clamp-2 group-hover:text-brand-600">
+                  <p className="text-[13px] font-semibold text-navy-900 leading-snug line-clamp-2 group-hover:text-brand-600 dark:text-navy-50 dark:group-hover:text-brand-300">
                     {a.title}
                   </p>
-                  <p className="text-[11px] text-navy-500 mt-1">
+                  <p className="text-[11px] text-navy-500 mt-1 dark:text-navy-300">
                     {formatTimeShort(a.created_at)}
                   </p>
                 </div>

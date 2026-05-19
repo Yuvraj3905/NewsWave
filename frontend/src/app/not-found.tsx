@@ -3,8 +3,8 @@ import Link from 'next/link';
 export default function NotFound() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-      <h1 className="text-5xl font-extrabold text-brand-900">404</h1>
-      <p className="mt-3 text-ink-500">
+      <h1 className="text-5xl font-extrabold text-brand-900 dark:text-white">404</h1>
+      <p className="mt-3 text-ink-500 dark:text-navy-300">
         That story may have been moved or no longer exists.
       </p>
       <Link

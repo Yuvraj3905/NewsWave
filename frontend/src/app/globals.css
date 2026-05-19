@@ -7,6 +7,11 @@
   --color-text: #0f172a;
 }
 
+html.dark {
+  --color-bg: #091a3a;
+  --color-text: #eef2f8;
+}
+
 html,
 body {
   background: var(--color-bg);
@@ -26,6 +31,10 @@ a {
   color: #1f2937;
 }
 
+html.dark .article-content {
+  color: #d6deec;
+}
+
 .article-content p {
   margin-bottom: 1rem;
 }
@@ -35,6 +44,11 @@ a {
   font-weight: 700;
   margin: 1.5rem 0 0.75rem;
   color: #091a3a;
+}
+
+html.dark .article-content h2,
+html.dark .article-content h3 {
+  color: #ffffff;
 }
 
 .article-content h3 {
@@ -57,9 +71,17 @@ a {
   margin: 1rem 0;
 }
 
+html.dark .article-content blockquote {
+  color: #aebed8;
+}
+
 .article-content a {
   color: #c11432;
   text-decoration: underline;
+}
+
+html.dark .article-content a {
+  color: #f59ba2;
 }
 
 .scrollbar-thin::-webkit-scrollbar {

@@ -21,11 +21,11 @@ export function NewsletterCard() {
   }
 
   return (
-    <section className="bg-white border border-navy-100 rounded-lg shadow-card p-5">
-      <h3 className="font-bold text-navy-900 uppercase text-sm tracking-wider mb-1">
+    <section className="bg-white border border-navy-100 rounded-lg shadow-card p-5 dark:bg-navy-800 dark:border-navy-700">
+      <h3 className="font-bold text-navy-900 uppercase text-sm tracking-wider mb-1 dark:text-white">
         Stay Updated
       </h3>
-      <p className="text-xs text-navy-500 mb-4">
+      <p className="text-xs text-navy-500 mb-4 dark:text-navy-300">
         Get the latest news updates in your inbox.
       </p>
       <form onSubmit={onSubmit} className="flex flex-col gap-2">
@@ -35,7 +35,7 @@ export function NewsletterCard() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email address"
-          className="w-full min-w-0 border border-navy-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+          className="w-full min-w-0 border border-navy-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-navy-700 dark:border-navy-600 dark:text-navy-50 dark:placeholder:text-navy-400"
         />
         <button
           type="submit"
@@ -51,7 +51,7 @@ export function NewsletterCard() {
       {state === 'err' && (
         <p className="text-xs text-brand-500 mt-2">Could not subscribe. Try again.</p>
       )}
-      <p className="text-[11px] text-navy-400 mt-3">
+      <p className="text-[11px] text-navy-400 mt-3 dark:text-navy-400">
         We respect your privacy. Unsubscribe anytime.
       </p>
     </section>

@@ -39,13 +39,13 @@ export function MainFeed() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="bg-white border border-navy-100 rounded-lg overflow-hidden animate-pulse"
+            className="bg-white border border-navy-100 rounded-lg overflow-hidden animate-pulse dark:bg-navy-800 dark:border-navy-700"
           >
-            <div className="aspect-[4/3] bg-surface-100" />
+            <div className="aspect-[4/3] bg-surface-100 dark:bg-navy-700" />
             <div className="p-4 space-y-2">
-              <div className="h-4 bg-surface-100 rounded w-3/4" />
-              <div className="h-3 bg-surface-100 rounded w-full" />
-              <div className="h-3 bg-surface-100 rounded w-2/3" />
+              <div className="h-4 bg-surface-100 rounded w-3/4 dark:bg-navy-700" />
+              <div className="h-3 bg-surface-100 rounded w-full dark:bg-navy-700" />
+              <div className="h-3 bg-surface-100 rounded w-2/3 dark:bg-navy-700" />
             </div>
           </div>
         ))}
@@ -55,16 +55,16 @@ export function MainFeed() {
 
   if (error) {
     return (
-      <div className="bg-white border border-brand-500/40 rounded-lg p-6 text-sm text-brand-600">
+      <div className="bg-white border border-brand-500/40 rounded-lg p-6 text-sm text-brand-600 dark:bg-navy-800">
         {error}
-        <p className="text-navy-500 mt-1">Make sure the backend API is running.</p>
+        <p className="text-navy-500 mt-1 dark:text-navy-300">Make sure the backend API is running.</p>
       </div>
     );
   }
 
   if (articles.length === 0) {
     return (
-      <div className="bg-white border border-navy-100 rounded-lg p-6 text-sm text-navy-500">
+      <div className="bg-white border border-navy-100 rounded-lg p-6 text-sm text-navy-500 dark:bg-navy-800 dark:border-navy-700 dark:text-navy-300">
         No news found for the selected filters.
       </div>
     );
