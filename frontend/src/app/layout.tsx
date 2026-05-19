@@ -5,7 +5,18 @@ import { Footer } from '@/components/Footer';
 import { GoogleTranslate } from '@/components/GoogleTranslate';
 import { LocationProvider } from '@/components/LocationContext';
 import { LanguageProvider } from '@/components/LanguageContext';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import { GA4 } from '@/components/GA4';
+
+const themeInitScript = `
+(function() {
+  try {
+    var t = localStorage.getItem('newswave:theme') || 'system';
+    var dark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (dark) document.documentElement.classList.add('dark');
+  } catch (e) {}
+})();
+`;
 
 export const metadata: Metadata = {
   title: {
@@ -30,8 +41,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          // Static literal, no user input. Prevents flash of incorrect theme.
+          dangerouslySetInnerHTML={{ __html: themeInitScript }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -43,16 +58,18 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen flex flex-col bg-surface-50">
-        <LanguageProvider>
-          <LocationProvider>
-            <Header />
-            <main className="flex-1 w-full">{children}</main>
-            <Footer />
-            <GoogleTranslate />
-            <GA4 />
-          </LocationProvider>
-        </LanguageProvider>
+      <body className="min-h-screen flex flex-col bg-surface-50 dark:bg-navy-900 dark:text-navy-50 transition-colors">
+        <ThemeProvider>
+          <LanguageProvider>
+            <LocationProvider>
+              <Header />
+              <main className="flex-1 w-full">{children}</main>
+              <Footer />
+              <GoogleTranslate />
+              <GA4 />
+            </LocationProvider>
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

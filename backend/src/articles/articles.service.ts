@@ -169,6 +169,8 @@ export class ArticlesService {
   }
 
   async list(query: ListArticlesDto) {
+    const lang = query.lang || 'en';
+
     const qb = this.repo
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.categories', 'category')
@@ -203,10 +205,20 @@ export class ArticlesService {
       );
     }
 
+    if (lang !== 'en' && !query.includeUnpublished) {
+      qb.andWhere(
+        `EXISTS (
+          SELECT 1 FROM article_translations t_filter
+          WHERE t_filter.article_id = article.id
+          AND t_filter.language = :langFilter
+        )`,
+        { langFilter: lang },
+      );
+    }
+
     qb.skip(query.offset || 0).take(query.limit || 20);
 
     const [items, total] = await qb.getManyAndCount();
-    const lang = query.lang || 'en';
     return {
       items: items.map((a) => maskViews(applyLang(a, lang))),
       total,
@@ -214,11 +226,25 @@ export class ArticlesService {
   }
 
   async latest(limit = 10, lang: ArticleLanguage = 'en') {
-    const items = await this.repo.find({
-      where: { published: true },
-      order: { created_at: 'DESC' },
-      take: limit,
-    });
+    const qb = this.repo
+      .createQueryBuilder('article')
+      .leftJoinAndSelect('article.translations', 'translation')
+      .where('article.published = :p', { p: true })
+      .orderBy('article.created_at', 'DESC')
+      .take(limit);
+
+    if (lang !== 'en') {
+      qb.andWhere(
+        `EXISTS (
+          SELECT 1 FROM article_translations t_filter
+          WHERE t_filter.article_id = article.id
+          AND t_filter.language = :langFilter
+        )`,
+        { langFilter: lang },
+      );
+    }
+
+    const items = await qb.getMany();
     return items.map((a) => maskViews(applyLang(a, lang)));
   }
 
