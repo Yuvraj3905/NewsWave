@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsBoolean,
+  IsISO8601,
   IsOptional,
   IsString,
   MinLength,
@@ -70,6 +71,14 @@ export class CreateArticleDto {
   @IsBoolean()
   @Transform(toBool)
   published?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Custom display publish date/time (ISO 8601). Falls back to created_at when omitted.',
+  })
+  @IsOptional()
+  @IsISO8601()
+  published_at?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

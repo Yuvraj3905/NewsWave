@@ -103,7 +103,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
             <div className="mt-4 text-sm text-navy-500 flex flex-wrap gap-x-4 gap-y-1 dark:text-navy-300">
               <span>By {article.author || 'NewsWave Desk'}</span>
-              <span>{formatIST(article.created_at)}</span>
+              <span>{formatIST(article.published_at || article.created_at)}</span>
               <span>{article.views} views</span>
             </div>
 

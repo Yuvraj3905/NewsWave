@@ -42,6 +42,13 @@ export function ArticleForm({ initial }: Props) {
   const [postToFB, setPostToFB] = useState(false);
   const [postToIG, setPostToIG] = useState(false);
   const [published, setPublished] = useState(initial?.published ?? true);
+  const [publishedAt, setPublishedAt] = useState<string>(() => {
+    const iso = initial?.published_at || initial?.created_at;
+    if (!iso) return '';
+    const d = new Date(iso);
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 16);
+  });
   const [categoryIds, setCategoryIds] = useState<string[]>(
     initial?.categories?.map((c) => c.id) || [],
   );
@@ -139,6 +146,10 @@ export function ArticleForm({ initial }: Props) {
       fd.append('content', en.content);
       fd.append('author', author);
       fd.append('published', String(published));
+      if (publishedAt) {
+        const iso = new Date(publishedAt).toISOString();
+        fd.append('published_at', iso);
+      }
       categoryIds.forEach((id) => fd.append('category_ids', id));
       locationIds.forEach((id) => fd.append('location_ids', id));
       if (!isEdit) {
@@ -296,7 +307,21 @@ export function ArticleForm({ initial }: Props) {
                 className="w-full border border-ink-300 rounded px-3 py-2"
               />
             </div>
-            <div className="flex items-end gap-2">
+            <div>
+              <label className="block text-sm font-medium text-ink-700 mb-1">
+                Publish Date &amp; Time
+              </label>
+              <input
+                type="datetime-local"
+                value={publishedAt}
+                onChange={(e) => setPublishedAt(e.target.value)}
+                className="w-full border border-ink-300 rounded px-3 py-2 text-sm"
+              />
+              <p className="text-[11px] text-ink-500 mt-1">
+                Used for display order and on the article page. Leave as-is to use the current time; set a back-date to surface a story under a specific timestamp.
+              </p>
+            </div>
+            <div className="md:col-span-2">
               <label className="inline-flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"

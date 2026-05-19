@@ -64,7 +64,7 @@ export function ArticleCard({
         )}
 
         <div className="mt-auto pt-3 flex items-center justify-between text-xs text-navy-500 dark:text-navy-300">
-          <time>{formatIST(article.created_at)}</time>
+          <time>{formatIST(article.published_at || article.created_at)}</time>
           <Link
             href={`/article/${article.slug}`}
             className="text-brand-500 font-bold hover:underline"

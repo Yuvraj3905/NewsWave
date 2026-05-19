@@ -43,6 +43,7 @@ export interface Article {
   author?: string;
   views: number;
   published: boolean;
+  published_at?: string | null;
   categories: Category[];
   locations: Location[];
   translations?: ArticleTranslation[];

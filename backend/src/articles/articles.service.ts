@@ -135,6 +135,7 @@ export class ArticlesService {
       author: dto.author,
       image_url: imageUrl,
       published: dto.published ?? true,
+      published_at: dto.published_at ? new Date(dto.published_at) : null,
       categories,
       locations,
     });
@@ -177,7 +178,7 @@ export class ArticlesService {
       .leftJoinAndSelect('article.locations', 'location')
       .leftJoinAndSelect('article.translations', 'translation')
       .leftJoinAndSelect('article.images', 'image')
-      .orderBy('article.created_at', 'DESC')
+      .orderBy('COALESCE(article.published_at, article.created_at)', 'DESC')
       .addOrderBy('image.position', 'ASC');
 
     if (!query.includeUnpublished) {
@@ -205,7 +206,21 @@ export class ArticlesService {
       );
     }
 
-    if (lang !== 'en' && !query.includeUnpublished) {
+    if (query.date_from) {
+      qb.andWhere(
+        'COALESCE(article.published_at, article.created_at) >= :dateFrom',
+        { dateFrom: query.date_from },
+      );
+    }
+
+    if (query.date_to) {
+      qb.andWhere(
+        'COALESCE(article.published_at, article.created_at) <= :dateTo',
+        { dateTo: query.date_to },
+      );
+    }
+
+    if (lang !== 'en') {
       qb.andWhere(
         `EXISTS (
           SELECT 1 FROM article_translations t_filter
@@ -230,7 +245,7 @@ export class ArticlesService {
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.translations', 'translation')
       .where('article.published = :p', { p: true })
-      .orderBy('article.created_at', 'DESC')
+      .orderBy('COALESCE(article.published_at, article.created_at)', 'DESC')
       .take(limit);
 
     if (lang !== 'en') {
@@ -329,6 +344,11 @@ export class ArticlesService {
     if (dto.content !== undefined) article.content = dto.content;
     if (dto.author !== undefined) article.author = dto.author;
     if (dto.published !== undefined) article.published = dto.published;
+    if (dto.published_at !== undefined) {
+      article.published_at = dto.published_at
+        ? new Date(dto.published_at)
+        : null;
+    }
 
     if (dto.category_ids) {
       article.categories = await this.categoriesService.findByIds(
