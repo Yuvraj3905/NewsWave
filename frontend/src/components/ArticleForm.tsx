@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Article, Category, Language, Location } from '@/lib/types';
 import { getToken } from './AdminAuth';
+import { RichEditor } from './RichEditor';
 
 interface Props {
   initial?: Article;
@@ -274,19 +275,17 @@ export function ArticleForm({ initial }: Props) {
             <label className="block text-sm font-medium text-ink-700 mb-1">
               Content{activeTab === 'en' && <span className="text-brand-500"> *</span>}
             </label>
-            <textarea
-              required={activeTab === 'en'}
-              rows={14}
+            <RichEditor
+              key={activeTab}
               value={byLang[activeTab].content}
-              onChange={(e) => patchLang(activeTab, { content: e.target.value })}
+              onChange={(html) => patchLang(activeTab, { content: html })}
               dir="auto"
-              className="w-full border border-ink-300 rounded px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder={
                 activeTab === 'en'
-                  ? 'Write the full article. Separate paragraphs with a blank line.'
+                  ? 'Write the full article. Use the toolbar for formatting.'
                   : activeTab === 'hi'
-                    ? 'पूरा समाचार यहाँ लिखें। पैराग्राफ अलग करने के लिए खाली पंक्ति छोड़ें।'
-                    : 'ਪੂਰਾ ਲੇਖ ਇੱਥੇ ਲਿਖੋ। ਪੈਰੇ ਵੱਖ ਕਰਨ ਲਈ ਖਾਲੀ ਲਾਈਨ ਛੱਡੋ।'
+                    ? 'पूरा समाचार यहाँ लिखें।'
+                    : 'ਪੂਰਾ ਲੇਖ ਇੱਥੇ ਲਿਖੋ।'
               }
             />
             {activeTab !== 'en' && (

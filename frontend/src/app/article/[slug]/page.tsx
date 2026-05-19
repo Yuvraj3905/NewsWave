@@ -2,12 +2,36 @@ import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import sanitizeHtml from 'sanitize-html';
 import { api } from '@/lib/api';
 import { formatIST } from '@/lib/format';
 import { LatestSidebar } from '@/components/LatestSidebar';
 import { ArticleCard } from '@/components/ArticleCard';
 import { ShareButtons } from '@/components/ShareButtons';
 import { Language } from '@/lib/types';
+
+const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: [
+    'p', 'h2', 'h3', 'br', 'hr', 'strong', 'b', 'em', 'i', 'u', 's',
+    'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'span', 'div',
+  ],
+  allowedAttributes: {
+    a: ['href', 'target', 'rel'],
+    '*': ['style'],
+  },
+  allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+  allowedStyles: {
+    '*': {
+      'text-align': [/^(left|right|center|justify)$/],
+    },
+  },
+  transformTags: {
+    a: sanitizeHtml.simpleTransform('a', {
+      rel: 'noopener noreferrer nofollow',
+      target: '_blank',
+    }),
+  },
+};
 
 interface PageProps {
   params: { slug: string };
@@ -60,10 +84,15 @@ export default async function ArticlePage({ params }: PageProps) {
     (a, b) => a.position - b.position,
   );
 
-  const paragraphs = (article.content || '')
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean);
+  const rawContent = article.content || '';
+  const isHtml = /^\s*</.test(rawContent);
+  const safeHtml = isHtml ? sanitizeHtml(rawContent, SANITIZE_OPTIONS) : '';
+  const paragraphs = isHtml
+    ? []
+    : rawContent
+        .split(/\n{2,}/)
+        .map((p) => p.trim())
+        .filter(Boolean);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
@@ -113,11 +142,19 @@ export default async function ArticlePage({ params }: PageProps) {
               </p>
             )}
 
-            <div className="article-content mt-6">
-              {paragraphs.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
-            </div>
+            {isHtml ? (
+              <div
+                className="article-content mt-6"
+                // Content sanitized server-side with allow-list above.
+                dangerouslySetInnerHTML={{ __html: safeHtml }}
+              />
+            ) : (
+              <div className="article-content mt-6">
+                {paragraphs.map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+            )}
 
             <ShareButtons title={article.title} slug={article.slug} />
 

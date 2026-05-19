@@ -44,6 +44,7 @@ export interface Article {
   views: number;
   published: boolean;
   published_at?: string | null;
+  display_order?: number | null;
   categories: Category[];
   locations: Location[];
   translations?: ArticleTranslation[];

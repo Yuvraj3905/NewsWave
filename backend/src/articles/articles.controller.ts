@@ -135,6 +135,16 @@ export class ArticlesController {
     return this.service.remove(id);
   }
 
+  @Post('reorder')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Bulk update display_order for manual section ordering (manager)',
+  })
+  reorder(@Body() body: { items: { id: string; display_order: number | null }[] }) {
+    return this.service.reorder(body?.items || []);
+  }
+
   // Translations
   @Get(':id/translations')
   @ApiBearerAuth()

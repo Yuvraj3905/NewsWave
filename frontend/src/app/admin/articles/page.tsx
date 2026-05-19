@@ -103,6 +103,8 @@ export default function AdminArticlesPage() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [orderEdits, setOrderEdits] = useState<Record<string, string>>({});
+  const [savingOrder, setSavingOrder] = useState(false);
 
   const range = useMemo(() => {
     if (preset !== 'all') return presetRange(preset);
@@ -128,10 +130,39 @@ export default function AdminArticlesPage() {
         limit: 100,
       });
       setItems(res.items);
+      setOrderEdits({});
     } catch (err: any) {
       setError(err?.message || 'Failed to load articles');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function onSaveOrder() {
+    const token = getToken();
+    if (!token) return;
+    const changes = Object.entries(orderEdits).map(([id, raw]) => {
+      const trimmed = raw.trim();
+      return {
+        id,
+        display_order: trimmed === '' ? null : parseInt(trimmed, 10),
+      };
+    });
+    if (changes.length === 0) return;
+    setSavingOrder(true);
+    try {
+      await api.adminReorderArticles(token, changes);
+      setItems((prev) =>
+        prev.map((a) => {
+          const change = changes.find((c) => c.id === a.id);
+          return change ? { ...a, display_order: change.display_order } : a;
+        }),
+      );
+      setOrderEdits({});
+    } catch (err: any) {
+      alert(err?.message || 'Save order failed');
+    } finally {
+      setSavingOrder(false);
     }
   }
 
@@ -318,10 +349,27 @@ export default function AdminArticlesPage() {
         </div>
       )}
 
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+        <p className="text-xs text-ink-500">
+          Set <strong>Order</strong> to a number to pin an article higher (1 first). Blank uses default date order. Applies to Latest Headlines, Trending Now, and Breaking News.
+        </p>
+        <button
+          type="button"
+          onClick={onSaveOrder}
+          disabled={savingOrder || Object.keys(orderEdits).length === 0}
+          className="bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5 rounded"
+        >
+          {savingOrder
+            ? 'Saving...'
+            : `Save Order${Object.keys(orderEdits).length ? ` (${Object.keys(orderEdits).length})` : ''}`}
+        </button>
+      </div>
+
       <div className="bg-white border border-ink-300/40 rounded-lg shadow-card overflow-x-auto">
-        <table className="w-full text-sm min-w-[920px]">
+        <table className="w-full text-sm min-w-[1000px]">
           <thead className="bg-surface-100 text-ink-700 text-left">
             <tr>
+              <th className="px-3 py-2.5 w-20">Order</th>
               <th className="px-3 py-2.5">Title</th>
               <th className="px-3 py-2.5">Category</th>
               <th className="px-3 py-2.5">Location</th>
@@ -335,14 +383,14 @@ export default function AdminArticlesPage() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-ink-500">
+                <td colSpan={9} className="px-4 py-6 text-center text-ink-500">
                   Loading...
                 </td>
               </tr>
             )}
             {!loading && items.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-ink-500">
+                <td colSpan={9} className="px-4 py-6 text-center text-ink-500">
                   No articles match the current filters.
                 </td>
               </tr>
@@ -354,11 +402,35 @@ export default function AdminArticlesPage() {
                 .map((l) => l.toUpperCase())
                 .join(', ');
               const displayDate = a.published_at || a.created_at;
+              const editedOrder = orderEdits[a.id];
+              const currentOrder =
+                editedOrder !== undefined
+                  ? editedOrder
+                  : a.display_order === null || a.display_order === undefined
+                    ? ''
+                    : String(a.display_order);
               return (
                 <tr
                   key={a.id}
                   className="border-t border-ink-300/40 hover:bg-surface-50 align-top"
                 >
+                  <td className="px-3 py-3 w-20">
+                    <input
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={currentOrder}
+                      onChange={(e) =>
+                        setOrderEdits((prev) => ({
+                          ...prev,
+                          [a.id]: e.target.value,
+                        }))
+                      }
+                      placeholder="—"
+                      className="w-16 border border-ink-300 rounded px-2 py-1 text-xs text-center"
+                      aria-label={`Display order for ${a.title}`}
+                    />
+                  </td>
                   <td className="px-3 py-3 max-w-[260px]">
                     <Link
                       href={`/admin/articles/${a.id}`}
