@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { formatIST } from '@/lib/format';
 import { LatestSidebar } from '@/components/LatestSidebar';
 import { ArticleCard } from '@/components/ArticleCard';
+import { ShareButtons } from '@/components/ShareButtons';
 import { Language } from '@/lib/types';
 
 interface PageProps {
@@ -117,6 +118,8 @@ export default async function ArticlePage({ params }: PageProps) {
                 <p key={i}>{p}</p>
               ))}
             </div>
+
+            <ShareButtons title={article.title} slug={article.slug} />
 
             {gallery.length > 0 && (
               <section className="mt-8">
