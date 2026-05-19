@@ -7,14 +7,24 @@ import { api } from '@/lib/api';
 import { useNewsFilter } from './LocationContext';
 
 const FALLBACK = [
+  'National',
+  'International',
   'Politics',
   'Business',
   'Sports',
-  'Entertainment',
+  'Career/Job',
   'Tech',
   'Health',
   'Automobile',
   'Crime',
+];
+
+const HIDDEN_SLUGS = new Set(['entertainment']);
+
+const EXTRA = [
+  { id: 'static-national', name: 'National', slug: 'national' },
+  { id: 'static-international', name: 'International', slug: 'international' },
+  { id: 'static-career-job', name: 'Career/Job', slug: 'career-job' },
 ];
 
 const slugify = (s: string) =>
@@ -27,7 +37,22 @@ export function FooterCategoryLinks() {
   useEffect(() => {
     api
       .listCategories()
-      .then(setCats)
+      .then((rows) => {
+        const filtered = rows
+          .filter((c) => !HIDDEN_SLUGS.has(c.slug.toLowerCase()))
+          .map((c) =>
+            c.slug.toLowerCase() === 'career-job' ||
+            c.name.toLowerCase() === 'career/job'
+              ? { ...c, name: 'Career/Job', slug: 'career-job' }
+              : c,
+          );
+        const existing = new Set(filtered.map((c) => c.slug.toLowerCase()));
+        const merged = [
+          ...filtered,
+          ...EXTRA.filter((e) => !existing.has(e.slug)),
+        ];
+        setCats(merged);
+      })
       .catch(() =>
         setCats(
           FALLBACK.map((n, i) => ({
@@ -39,7 +64,10 @@ export function FooterCategoryLinks() {
       );
   }, []);
 
-  const list = cats.length > 0 ? cats : FALLBACK.map((n, i) => ({ id: `f${i}`, name: n, slug: slugify(n) }));
+  const list =
+    cats.length > 0
+      ? cats
+      : FALLBACK.map((n, i) => ({ id: `f${i}`, name: n, slug: slugify(n) }));
 
   return (
     <ul className="text-sm grid grid-cols-2 gap-2 text-navy-200">

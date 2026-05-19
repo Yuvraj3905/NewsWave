@@ -7,22 +7,32 @@ import { LANG_LABELS, LANG_OPTIONS, useLanguage } from './LanguageContext';
 import { api } from '@/lib/api';
 import { Category, Language, Location } from '@/lib/types';
 
-const FALLBACK_LOCATIONS = [
-  'Punjab',
-  'Haryana',
-  'Chandigarh',
-  'National',
-  'International',
-];
+const FALLBACK_LOCATIONS = ['Punjab', 'Haryana', 'Chandigarh'];
+
+const REGIONAL_LOCATION_SLUGS = new Set([
+  'punjab',
+  'haryana',
+  'chandigarh',
+]);
 
 const FALLBACK_CATEGORIES = [
+  'National',
+  'International',
   'Sports',
   'Business',
   'Health',
   'Automobile',
   'Politics',
   'Crime',
-  'Entertainment',
+  'Career/Job',
+];
+
+const HIDDEN_CATEGORY_SLUGS = new Set(['entertainment']);
+
+const EXTRA_CATEGORIES = [
+  { id: 'static-national', name: 'National', slug: 'national' },
+  { id: 'static-international', name: 'International', slug: 'international' },
+  { id: 'static-career-job', name: 'Career/Job', slug: 'career-job' },
 ];
 
 const slugify = (s: string) =>
@@ -44,7 +54,11 @@ export function Header() {
   useEffect(() => {
     api
       .listLocations()
-      .then(setLocations)
+      .then((rows) =>
+        setLocations(
+          rows.filter((l) => REGIONAL_LOCATION_SLUGS.has(l.slug.toLowerCase())),
+        ),
+      )
       .catch(() =>
         setLocations(
           FALLBACK_LOCATIONS.map((n, i) => ({
@@ -56,7 +70,22 @@ export function Header() {
       );
     api
       .listCategories()
-      .then(setCategories)
+      .then((rows) => {
+        const filtered = rows
+          .filter((c) => !HIDDEN_CATEGORY_SLUGS.has(c.slug.toLowerCase()))
+          .map((c) =>
+            c.slug.toLowerCase() === 'career-job' ||
+            c.name.toLowerCase() === 'career/job'
+              ? { ...c, name: 'Career/Job', slug: 'career-job' }
+              : c,
+          );
+        const existing = new Set(filtered.map((c) => c.slug.toLowerCase()));
+        const merged = [
+          ...filtered,
+          ...EXTRA_CATEGORIES.filter((e) => !existing.has(e.slug)),
+        ];
+        setCategories(merged);
+      })
       .catch(() =>
         setCategories(
           FALLBACK_CATEGORIES.map((n, i) => ({
@@ -116,6 +145,7 @@ export function Header() {
             <SocialRow />
           </div>
           <div className="flex items-center gap-3">
+            <LiveDateTime />
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value as Language)}
@@ -379,6 +409,45 @@ function NavBtn({
         <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-brand-500 rounded-full" />
       )}
     </button>
+  );
+}
+
+function LiveDateTime() {
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+    const t = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  if (!now) return null;
+
+  const day = now.toLocaleDateString('en-IN', {
+    weekday: 'long',
+    timeZone: 'Asia/Kolkata',
+  });
+  const date = now.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  });
+  const time = now.toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Kolkata',
+  });
+
+  return (
+    <span
+      className="hidden md:inline text-navy-200"
+      aria-label="Current date and time"
+      suppressHydrationWarning
+    >
+      {day}, {date} &middot; {time}
+    </span>
   );
 }
 
