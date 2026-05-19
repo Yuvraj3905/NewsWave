@@ -25,13 +25,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     .sort((a, b) => b.length - a.length)[0];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-        <aside className="bg-white rounded-lg border border-ink-300/40 shadow-card p-4 h-max">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-[200px_minmax(0,1fr)] lg:grid-cols-[220px_minmax(0,1fr)]">
+        <aside className="bg-white rounded-lg border border-ink-300/40 shadow-card p-3 sm:p-4 h-max md:sticky md:top-4">
           <div className="text-xs uppercase tracking-widest text-ink-500 mb-2">
             Manager
           </div>
-          <nav className="flex flex-col gap-1">
+          <nav className="flex md:flex-col gap-1 flex-wrap">
             {NAV.map((item) => {
               const active = item.href === bestMatch;
               return (
@@ -50,7 +50,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             })}
             <button
               onClick={logout}
-              className="mt-3 text-left px-3 py-2 rounded text-sm font-medium text-accent-600 hover:bg-accent-500/10"
+              className="md:mt-3 text-left px-3 py-2 rounded text-sm font-medium text-accent-600 hover:bg-accent-500/10"
             >
               Logout
             </button>

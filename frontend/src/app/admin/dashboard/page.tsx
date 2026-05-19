@@ -35,7 +35,9 @@ export default function DashboardPage() {
 
   return (
     <AdminShell>
-      <h1 className="text-2xl font-extrabold text-brand-900 mb-6">Overview</h1>
+      <h1 className="text-xl sm:text-2xl font-extrabold text-brand-900 mb-4 sm:mb-6">
+        Overview
+      </h1>
 
       {error && (
         <div className="bg-white border border-accent-500/40 rounded p-4 text-sm text-accent-600 mb-4">
@@ -43,7 +45,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total Articles" value={stats?.total_articles ?? '-'} />
         <StatCard
           label="Published Articles"
@@ -53,14 +55,14 @@ export default function DashboardPage() {
         <StatCard label="Active Subscribers" value={subCount ?? '-'} />
       </div>
 
-      <div className="mt-8">
+      <div className="mt-6 sm:mt-8">
         <h2 className="font-bold text-brand-900 mb-4 text-lg">Analytics</h2>
         <AnalyticsCharts />
       </div>
 
-      <div className="mt-8 bg-white rounded-lg border border-ink-300/40 shadow-card p-6">
+      <div className="mt-6 sm:mt-8 bg-white rounded-lg border border-ink-300/40 shadow-card p-4 sm:p-6">
         <h2 className="font-bold text-brand-900 mb-3">Quick Actions</h2>
-        <div className="flex flex-wrap gap-3 text-sm">
+        <div className="flex flex-wrap gap-2 sm:gap-3 text-sm">
           <Link
             href="/admin/articles/new"
             className="bg-accent-500 hover:bg-accent-600 text-white px-3 py-1.5 rounded font-semibold"
@@ -98,11 +100,13 @@ function StatCard({
   value: number | string;
 }) {
   return (
-    <div className="bg-white rounded-lg border border-ink-300/40 shadow-card p-5">
-      <div className="text-xs uppercase tracking-widest text-ink-500">
+    <div className="bg-white rounded-lg border border-ink-300/40 shadow-card p-3 sm:p-5">
+      <div className="text-[10px] sm:text-xs uppercase tracking-widest text-ink-500">
         {label}
       </div>
-      <div className="mt-2 text-3xl font-extrabold text-brand-900">{value}</div>
+      <div className="mt-1 sm:mt-2 text-xl sm:text-2xl md:text-3xl font-extrabold text-brand-900">
+        {value}
+      </div>
     </div>
   );
 }

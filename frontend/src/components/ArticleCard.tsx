@@ -16,7 +16,7 @@ export function ArticleCard({
 
   return (
     <article
-      className={`group bg-white rounded-lg border border-navy-100 shadow-card hover:shadow-cardHover transition overflow-hidden flex flex-col ${
+      className={`group bg-white rounded-lg border border-navy-100 shadow-card hover:shadow-cardHover transition overflow-hidden flex flex-col dark:bg-navy-800 dark:border-navy-700 ${
         isFeature ? 'sm:col-span-2' : ''
       }`}
     >
@@ -49,7 +49,7 @@ export function ArticleCard({
 
         <Link href={`/article/${article.slug}`}>
           <h2
-            className={`font-bold text-navy-900 leading-snug group-hover:text-brand-500 transition ${
+            className={`font-bold text-navy-900 leading-snug group-hover:text-brand-500 transition dark:text-navy-50 ${
               isFeature ? 'text-xl sm:text-2xl' : 'text-base sm:text-lg'
             }`}
           >
@@ -58,12 +58,12 @@ export function ArticleCard({
         </Link>
 
         {article.description && (
-          <p className="text-navy-700 text-sm mt-2 line-clamp-3">
+          <p className="text-navy-700 text-sm mt-2 line-clamp-3 dark:text-navy-200">
             {article.description}
           </p>
         )}
 
-        <div className="mt-auto pt-3 flex items-center justify-between text-xs text-navy-500">
+        <div className="mt-auto pt-3 flex items-center justify-between text-xs text-navy-500 dark:text-navy-300">
           <time>{formatIST(article.created_at)}</time>
           <Link
             href={`/article/${article.slug}`}

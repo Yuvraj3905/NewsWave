@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useNewsFilter } from './LocationContext';
 import { LANG_LABELS, LANG_OPTIONS, useLanguage } from './LanguageContext';
+import { ThemeToggle } from './ThemeToggle';
 import { api } from '@/lib/api';
 import { Category, Language, Location } from '@/lib/types';
 
@@ -108,7 +109,7 @@ export function Header() {
   };
 
   return (
-    <header className="bg-white sticky top-0 z-40 shadow-sm">
+    <header className="bg-white sticky top-0 z-40 shadow-sm dark:bg-navy-800 dark:text-navy-50">
       <div className="bg-navy-900 text-white text-xs">
         <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -116,6 +117,7 @@ export function Header() {
             <SocialRow />
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value as Language)}
@@ -136,10 +138,10 @@ export function Header() {
         </div>
       </div>
 
-      <div className="border-b border-navy-100">
+      <div className="border-b border-navy-100 dark:border-navy-700">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <button
-            className="lg:hidden p-2 -ml-2 text-navy-900"
+            className="lg:hidden p-2 -ml-2 text-navy-900 dark:text-navy-50"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle menu"
             aria-expanded={mobileOpen}
@@ -153,10 +155,10 @@ export function Header() {
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <div className="leading-none">
               <div className="font-extrabold text-2xl md:text-3xl tracking-tight">
-                <span className="text-navy-900">News</span>
+                <span className="text-navy-900 dark:text-white">News</span>
                 <span className="text-brand-500">Wave</span>
               </div>
-              <div className="text-[10px] uppercase tracking-widest text-navy-500 mt-0.5">
+              <div className="text-[10px] uppercase tracking-widest text-navy-500 mt-0.5 dark:text-navy-300">
                 Your Region. Your News.
               </div>
             </div>
@@ -240,7 +242,7 @@ export function Header() {
             <select
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="hidden md:block border border-navy-200 rounded px-2 py-1.5 text-xs text-navy-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="hidden md:block border border-navy-200 rounded px-2 py-1.5 text-xs text-navy-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-navy-700 dark:text-navy-50 dark:border-navy-600"
               aria-label="Filter by location"
             >
               <option value="">All Locations</option>
@@ -260,7 +262,7 @@ export function Header() {
         </div>
 
         {searchOpen && (
-          <div className="border-t border-navy-100 bg-surface-50">
+          <div className="border-t border-navy-100 bg-surface-50 dark:bg-navy-800 dark:border-navy-700">
             <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-2">
               <input
                 autoFocus
@@ -300,7 +302,7 @@ export function Header() {
             />
             <div
               id="mobile-nav-panel"
-              className="lg:hidden border-t border-navy-100 bg-white relative z-40"
+              className="lg:hidden border-t border-navy-100 bg-white relative z-40 dark:bg-navy-800 dark:border-navy-700"
             >
               <div className="max-w-7xl mx-auto px-4 py-3 space-y-3">
               <select
