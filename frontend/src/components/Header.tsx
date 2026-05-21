@@ -215,7 +215,7 @@ export function Header() {
                   onClick={() => setMoreOpen((v) => !v)}
                   aria-haspopup="menu"
                   aria-expanded={moreOpen}
-                  className="px-3 py-2 text-navy-700 hover:text-brand-600 transition flex items-center gap-1"
+                  className="px-3 py-2 text-navy-700 hover:text-brand-600 transition flex items-center gap-1 dark:text-navy-100 dark:hover:text-brand-300"
                 >
                   More
                   <svg
@@ -233,7 +233,7 @@ export function Header() {
                 {moreOpen && (
                   <div
                     role="menu"
-                    className="absolute right-0 top-full mt-1 bg-white border border-navy-100 shadow-lg rounded-md py-2 min-w-[160px] z-50"
+                    className="absolute right-0 top-full mt-1 bg-white border border-navy-100 shadow-lg rounded-md py-2 min-w-[160px] z-50 dark:bg-navy-800 dark:border-navy-700"
                   >
                     {categories.slice(6).map((c) => (
                       <button
@@ -243,7 +243,7 @@ export function Header() {
                           setCategory(c.slug);
                           setMoreOpen(false);
                         }}
-                        className="block w-full text-left px-4 py-1.5 text-sm text-navy-700 hover:bg-surface-100 hover:text-brand-600"
+                        className="block w-full text-left px-4 py-1.5 text-sm text-navy-700 hover:bg-surface-100 hover:text-brand-600 dark:text-navy-100 dark:hover:bg-navy-700 dark:hover:text-brand-300"
                       >
                         {c.name}
                       </button>
@@ -256,7 +256,7 @@ export function Header() {
 
           <div className="flex items-center gap-2 shrink-0">
             <button
-              className="p-2 text-navy-700 hover:text-brand-600"
+              className="p-2 text-navy-700 hover:text-brand-600 dark:text-navy-100 dark:hover:text-brand-300"
               onClick={() => {
                 if (searchOpen) closeSearch();
                 else setSearchOpen(true);
@@ -299,7 +299,7 @@ export function Header() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search news..."
-                className="flex-1 border border-navy-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="flex-1 border border-navy-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-navy-700 dark:border-navy-600 dark:text-navy-50 dark:placeholder:text-navy-400"
               />
               {search && (
                 <button
@@ -338,7 +338,7 @@ export function Header() {
               <select
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="md:hidden w-full border border-navy-200 rounded px-2 py-2 text-sm bg-white"
+                className="md:hidden w-full border border-navy-200 rounded px-2 py-2 text-sm bg-white dark:bg-navy-700 dark:border-navy-600 dark:text-navy-50"
                 aria-label="Location"
               >
                 <option value="">All Locations</option>
@@ -357,7 +357,7 @@ export function Header() {
                   className={`px-3 py-2 rounded text-sm font-semibold ${
                     category === ''
                       ? 'bg-brand-500 text-white'
-                      : 'bg-surface-100 text-navy-700'
+                      : 'bg-surface-100 text-navy-700 dark:bg-navy-700 dark:text-navy-100'
                   }`}
                 >
                   Home
@@ -372,7 +372,7 @@ export function Header() {
                     className={`px-3 py-2 rounded text-sm font-semibold ${
                       category === c.slug
                         ? 'bg-brand-500 text-white'
-                        : 'bg-surface-100 text-navy-700'
+                        : 'bg-surface-100 text-navy-700 dark:bg-navy-700 dark:text-navy-100'
                     }`}
                   >
                     {c.name}
@@ -403,7 +403,7 @@ function NavBtn({
       className={`px-3 py-2 transition relative ${
         active
           ? 'text-brand-500'
-          : 'text-navy-800 hover:text-brand-500'
+          : 'text-navy-800 hover:text-brand-500 dark:text-navy-100 dark:hover:text-brand-300'
       }`}
     >
       {label}

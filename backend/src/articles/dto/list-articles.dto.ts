@@ -1,6 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsIn,
+  IsISO8601,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 import { SUPPORTED_LANGUAGES, SupportedLanguage } from './translation.dto';
 
 export class ListArticlesDto {
@@ -46,4 +54,18 @@ export class ListArticlesDto {
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
   includeUnpublished?: boolean = false;
+
+  @ApiPropertyOptional({
+    description: 'Filter: display date >= ISO timestamp (uses published_at, falls back to created_at).',
+  })
+  @IsOptional()
+  @IsISO8601()
+  date_from?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter: display date <= ISO timestamp.',
+  })
+  @IsOptional()
+  @IsISO8601()
+  date_to?: string;
 }

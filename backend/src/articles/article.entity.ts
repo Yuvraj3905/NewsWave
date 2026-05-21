@@ -45,6 +45,10 @@ export class Article {
   @Column({ type: 'boolean', default: true })
   published: boolean;
 
+  @Index()
+  @Column({ type: 'timestamptz', nullable: true })
+  published_at: Date | null;
+
   @ManyToMany(() => Category, (category) => category.articles, {
     cascade: false,
     eager: true,
