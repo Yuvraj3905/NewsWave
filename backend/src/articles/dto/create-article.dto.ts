@@ -80,6 +80,18 @@ export class CreateArticleDto {
   @IsISO8601()
   published_at?: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Manual sort priority. Lower numbers appear first. NULL means default date-based ordering.',
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return null;
+    const n = parseInt(String(value), 10);
+    return Number.isFinite(n) ? n : null;
+  })
+  display_order?: number | null;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()

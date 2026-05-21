@@ -113,6 +113,15 @@ export const api = {
     }),
   adminDeleteArticle: (token: string, id: string) =>
     request<void>(`/articles/${id}`, { method: 'DELETE', token }),
+  adminReorderArticles: (
+    token: string,
+    items: { id: string; display_order: number | null }[],
+  ) =>
+    request<{ updated: number }>('/articles/reorder', {
+      method: 'POST',
+      body: JSON.stringify({ items }),
+      token,
+    }),
   adminStats: (token: string) =>
     request<{
       total_articles: number;

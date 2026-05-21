@@ -49,6 +49,10 @@ export class Article {
   @Column({ type: 'timestamptz', nullable: true })
   published_at: Date | null;
 
+  @Index()
+  @Column({ type: 'int', nullable: true })
+  display_order: number | null;
+
   @ManyToMany(() => Category, (category) => category.articles, {
     cascade: false,
     eager: true,

@@ -136,6 +136,8 @@ export class ArticlesService {
       image_url: imageUrl,
       published: dto.published ?? true,
       published_at: dto.published_at ? new Date(dto.published_at) : null,
+      display_order:
+        dto.display_order === undefined ? null : dto.display_order,
       categories,
       locations,
     });
@@ -178,7 +180,11 @@ export class ArticlesService {
       .leftJoinAndSelect('article.locations', 'location')
       .leftJoinAndSelect('article.translations', 'translation')
       .leftJoinAndSelect('article.images', 'image')
-      .orderBy('COALESCE(article.published_at, article.created_at)', 'DESC')
+      .orderBy('article.display_order', 'ASC', 'NULLS LAST')
+      .addOrderBy(
+        'COALESCE(article.published_at, article.created_at)',
+        'DESC',
+      )
       .addOrderBy('image.position', 'ASC');
 
     if (!query.includeUnpublished) {
@@ -245,7 +251,11 @@ export class ArticlesService {
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.translations', 'translation')
       .where('article.published = :p', { p: true })
-      .orderBy('COALESCE(article.published_at, article.created_at)', 'DESC')
+      .orderBy('article.display_order', 'ASC', 'NULLS LAST')
+      .addOrderBy(
+        'COALESCE(article.published_at, article.created_at)',
+        'DESC',
+      )
       .take(limit);
 
     if (lang !== 'en') {
@@ -349,6 +359,9 @@ export class ArticlesService {
         ? new Date(dto.published_at)
         : null;
     }
+    if (dto.display_order !== undefined) {
+      article.display_order = dto.display_order;
+    }
 
     if (dto.category_ids) {
       article.categories = await this.categoriesService.findByIds(
@@ -376,6 +389,25 @@ export class ArticlesService {
     const article = await this.findById(id);
     await this.repo.remove(article);
     return { deleted: true };
+  }
+
+  async reorder(items: { id: string; display_order: number | null }[]) {
+    if (!Array.isArray(items)) {
+      throw new BadRequestException('items array required');
+    }
+    for (const it of items) {
+      if (!it?.id) continue;
+      await this.repo.update(
+        { id: it.id },
+        {
+          display_order:
+            it.display_order === null || it.display_order === undefined
+              ? null
+              : Number(it.display_order),
+        },
+      );
+    }
+    return { updated: items.length };
   }
 
   async stats() {
