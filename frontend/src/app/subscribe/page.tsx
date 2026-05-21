@@ -18,7 +18,9 @@ export default function SubscribePage() {
     try {
       await api.subscribe(email, name || undefined);
       setStatus('ok');
-      setMessage('Subscribed. Watch your inbox for updates.');
+      setMessage(
+        'Thanks! Your subscription is pending review by our editor. You will receive newsletters once it is approved.',
+      );
       setEmail('');
       setName('');
     } catch (err: any) {

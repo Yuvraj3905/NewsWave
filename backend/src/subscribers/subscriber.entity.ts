@@ -3,8 +3,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   Index,
 } from 'typeorm';
+
+export type SubscriberStatus = 'pending' | 'approved' | 'rejected';
 
 @Entity('subscribers')
 export class Subscriber {
@@ -21,6 +24,16 @@ export class Subscriber {
   @Column({ type: 'boolean', default: true })
   active: boolean;
 
+  @Index()
+  @Column({ type: 'varchar', length: 16, default: 'pending' })
+  status: SubscriberStatus;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  status_changed_at: Date | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updated_at: Date;
 }

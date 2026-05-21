@@ -8,6 +8,8 @@ import {
   Language,
   Location,
   Subscriber,
+  SubscriberCounts,
+  SubscriberStatus,
 } from './types';
 
 const API_URL =
@@ -136,10 +138,23 @@ export const api = {
       top_articles: { id: string; title: string; slug: string; views: number }[];
       by_language: { language: string; count: number }[];
     }>('/articles/analytics', { token }),
-  adminListSubscribers: (token: string) =>
-    request<Subscriber[]>('/subscribers', { token }),
+  adminListSubscribers: (token: string, status?: SubscriberStatus) =>
+    request<Subscriber[]>('/subscribers', {
+      token,
+      query: status ? { status } : undefined,
+    }),
   adminSubscriberCount: (token: string) =>
-    request<{ count: number }>('/subscribers/count', { token }),
+    request<SubscriberCounts>('/subscribers/count', { token }),
+  adminApproveSubscriber: (token: string, id: string) =>
+    request<Subscriber>(`/subscribers/${id}/approve`, {
+      method: 'PATCH',
+      token,
+    }),
+  adminRejectSubscriber: (token: string, id: string) =>
+    request<Subscriber>(`/subscribers/${id}/reject`, {
+      method: 'PATCH',
+      token,
+    }),
   adminRevokeSubscriber: (token: string, id: string) =>
     request<Subscriber>(`/subscribers/${id}/revoke`, {
       method: 'PATCH',
