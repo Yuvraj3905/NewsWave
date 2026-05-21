@@ -1,7 +1,9 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
@@ -58,7 +60,9 @@ const applyLang = (article: Article, lang: ArticleLanguage): Article => {
 };
 
 @Injectable()
-export class ArticlesService {
+export class ArticlesService implements OnModuleInit {
+  private readonly logger = new Logger(ArticlesService.name);
+
   constructor(
     @InjectRepository(Article)
     private readonly repo: Repository<Article>,
@@ -72,6 +76,26 @@ export class ArticlesService {
     private readonly webhookService: WebhookService,
     private readonly socialService: SocialService,
   ) {}
+
+  async onModuleInit() {
+    try {
+      const result = await this.repo
+        .createQueryBuilder()
+        .update(Article)
+        .set({ published_at: () => '"created_at"' })
+        .where('published_at IS NULL')
+        .execute();
+      if (result.affected) {
+        this.logger.log(
+          `Backfilled published_at on ${result.affected} legacy article(s)`,
+        );
+      }
+    } catch (err) {
+      this.logger.warn(
+        `published_at backfill skipped: ${(err as Error).message}`,
+      );
+    }
+  }
 
   private async generateUniqueSlug(title: string, excludeId?: string): Promise<string> {
     const base = slugify(title) || 'article';
@@ -135,7 +159,7 @@ export class ArticlesService {
       author: dto.author,
       image_url: imageUrl,
       published: dto.published ?? true,
-      published_at: dto.published_at ? new Date(dto.published_at) : null,
+      published_at: dto.published_at ? new Date(dto.published_at) : new Date(),
       display_order:
         dto.display_order === undefined ? null : dto.display_order,
       categories,
@@ -181,10 +205,8 @@ export class ArticlesService {
       .leftJoinAndSelect('article.translations', 'translation')
       .leftJoinAndSelect('article.images', 'image')
       .orderBy('article.display_order', 'ASC', 'NULLS LAST')
-      .addOrderBy(
-        'COALESCE(article.published_at, article.created_at)',
-        'DESC',
-      )
+      .addOrderBy('article.published_at', 'DESC', 'NULLS LAST')
+      .addOrderBy('article.created_at', 'DESC')
       .addOrderBy('image.position', 'ASC');
 
     if (!query.includeUnpublished) {
@@ -225,6 +247,7 @@ export class ArticlesService {
         { dateTo: query.date_to },
       );
     }
+    // COALESCE is OK in WHERE; TypeORM only mis-parses dotted refs in ORDER BY.
 
     if (lang !== 'en') {
       qb.andWhere(
@@ -252,10 +275,8 @@ export class ArticlesService {
       .leftJoinAndSelect('article.translations', 'translation')
       .where('article.published = :p', { p: true })
       .orderBy('article.display_order', 'ASC', 'NULLS LAST')
-      .addOrderBy(
-        'COALESCE(article.published_at, article.created_at)',
-        'DESC',
-      )
+      .addOrderBy('article.published_at', 'DESC', 'NULLS LAST')
+      .addOrderBy('article.created_at', 'DESC')
       .take(limit);
 
     if (lang !== 'en') {
