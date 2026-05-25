@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Inter, Source_Serif_4 } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -7,6 +8,31 @@ import { LocationProvider } from '@/components/LocationContext';
 import { LanguageProvider } from '@/components/LanguageContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { GA4 } from '@/components/GA4';
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const serif = Source_Serif_4({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  variable: '--font-serif',
+  display: 'swap',
+});
+
+const apiOrigin = (() => {
+  try {
+    const u = new URL(
+      process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
+    );
+    return u.origin;
+  } catch {
+    return null;
+  }
+})();
 
 const themeInitScript = `
 (function() {
@@ -41,22 +67,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.variable} ${serif.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           // Static literal, no user input. Prevents flash of incorrect theme.
           dangerouslySetInnerHTML={{ __html: themeInitScript }}
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+Pro:wght@400;600;700&display=swap"
-          rel="stylesheet"
-        />
+        {apiOrigin && (
+          <>
+            <link rel="preconnect" href={apiOrigin} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={apiOrigin} />
+          </>
+        )}
       </head>
       <body className="min-h-screen flex flex-col bg-surface-50 dark:bg-navy-900 dark:text-navy-50 transition-colors">
         <ThemeProvider>

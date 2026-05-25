@@ -1,11 +1,24 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AdminShell } from '@/components/AdminShell';
 import { getToken, useRequireAuth } from '@/components/AdminAuth';
 import { api } from '@/lib/api';
-import { AnalyticsCharts } from '@/components/AnalyticsCharts';
+
+const AnalyticsCharts = dynamic(
+  () =>
+    import('@/components/AnalyticsCharts').then((m) => m.AnalyticsCharts),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-white rounded-lg border border-navy-100 shadow-card p-6 text-sm text-navy-500">
+        Loading analytics...
+      </div>
+    ),
+  },
+);
 
 interface Stats {
   total_articles: number;
