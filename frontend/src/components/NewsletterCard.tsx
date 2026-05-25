@@ -46,7 +46,9 @@ export function NewsletterCard() {
         </button>
       </form>
       {state === 'ok' && (
-        <p className="text-xs text-green-600 mt-2">Subscribed. Check your inbox.</p>
+        <p className="text-xs text-green-600 mt-2">
+          Submitted. Awaiting editor approval.
+        </p>
       )}
       {state === 'err' && (
         <p className="text-xs text-brand-500 mt-2">Could not subscribe. Try again.</p>

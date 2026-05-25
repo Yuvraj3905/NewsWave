@@ -63,10 +63,23 @@ export interface AuthResponse {
   manager: { id: string; username: string; role: string };
 }
 
+export type SubscriberStatus = 'pending' | 'approved' | 'rejected';
+
 export interface Subscriber {
   id: string;
   email: string;
   name?: string;
   active: boolean;
+  status: SubscriberStatus;
+  status_changed_at?: string | null;
   created_at: string;
+  updated_at?: string;
+}
+
+export interface SubscriberCounts {
+  total: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  count: number;
 }
