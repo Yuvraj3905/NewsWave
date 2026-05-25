@@ -46,8 +46,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        serif: ['"Source Serif Pro"', 'Georgia', 'serif'],
+        sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['var(--font-serif)', '"Source Serif Pro"', 'Georgia', 'serif'],
       },
       boxShadow: {
         card: '0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04)',

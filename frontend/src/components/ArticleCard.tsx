@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Article } from '@/lib/types';
 import { formatIST } from '@/lib/format';
 
@@ -8,11 +9,17 @@ const FALLBACK_IMG =
 export function ArticleCard({
   article,
   variant = 'default',
+  priority = false,
 }: {
   article: Article;
   variant?: 'default' | 'feature';
+  priority?: boolean;
 }) {
   const isFeature = variant === 'feature';
+  const src = article.image_url || FALLBACK_IMG;
+  const sizes = isFeature
+    ? '(min-width: 1024px) 60vw, 100vw'
+    : '(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw';
 
   return (
     <article
@@ -26,11 +33,14 @@ export function ArticleCard({
             isFeature ? 'aspect-[16/9]' : 'aspect-[4/3]'
           }`}
         >
-          <img
-            src={article.image_url || FALLBACK_IMG}
+          <Image
+            src={src}
             alt={article.title}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-[1.03] transition duration-500"
+            fill
+            sizes={sizes}
+            priority={priority}
+            loading={priority ? undefined : 'lazy'}
+            className="object-cover group-hover:scale-[1.03] transition duration-500"
           />
           {article.categories?.[0] && (
             <span className="absolute top-3 left-3 bg-brand-500 text-white text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded">

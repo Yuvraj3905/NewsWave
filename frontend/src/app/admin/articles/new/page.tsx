@@ -1,8 +1,18 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { AdminShell } from '@/components/AdminShell';
-import { ArticleForm } from '@/components/ArticleForm';
 import { useRequireAuth } from '@/components/AdminAuth';
+
+const ArticleForm = dynamic(
+  () => import('@/components/ArticleForm').then((m) => m.ArticleForm),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="text-sm text-ink-500">Loading editor...</div>
+    ),
+  },
+);
 
 export default function NewArticlePage() {
   const ready = useRequireAuth();

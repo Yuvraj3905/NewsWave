@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import sanitizeHtml from 'sanitize-html';
 import { api } from '@/lib/api';
@@ -99,11 +100,16 @@ export default async function ArticlePage({ params }: PageProps) {
       <div className="grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <article className="bg-white rounded-lg border border-navy-100 shadow-card overflow-hidden dark:bg-navy-800 dark:border-navy-700">
           {article.image_url && (
-            <img
-              src={article.image_url}
-              alt={article.title}
-              className="w-full max-h-[480px] object-cover"
-            />
+            <div className="relative w-full aspect-[16/9] max-h-[480px] bg-surface-100 dark:bg-navy-700">
+              <Image
+                src={article.image_url}
+                alt={article.title}
+                fill
+                priority
+                sizes="(min-width: 1024px) 1024px, 100vw"
+                className="object-cover"
+              />
+            </div>
           )}
 
           <div className="p-4 sm:p-6 md:p-8">
@@ -170,13 +176,15 @@ export default async function ArticlePage({ params }: PageProps) {
                       href={img.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block relative overflow-hidden rounded-lg border border-navy-100 hover:shadow-card transition"
+                      className="block relative overflow-hidden rounded-lg border border-navy-100 hover:shadow-card transition h-44 bg-surface-100 dark:bg-navy-700"
                     >
-                      <img
+                      <Image
                         src={img.url}
                         alt={img.alt || article.title}
+                        fill
                         loading="lazy"
-                        className="w-full h-44 object-cover"
+                        sizes="(min-width: 768px) 30vw, 50vw"
+                        className="object-cover"
                       />
                       {img.alt && (
                         <span className="absolute inset-x-0 bottom-0 bg-black/55 text-white text-xs px-2 py-1">

@@ -1,12 +1,31 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { AdminShell } from '@/components/AdminShell';
-import { ArticleForm } from '@/components/ArticleForm';
-import { TranslationsManager } from '@/components/TranslationsManager';
-import { ImagesManager } from '@/components/ImagesManager';
 import { getToken, useRequireAuth } from '@/components/AdminAuth';
 import { Article } from '@/lib/types';
+
+const ArticleForm = dynamic(
+  () => import('@/components/ArticleForm').then((m) => m.ArticleForm),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="text-sm text-ink-500">Loading editor...</div>
+    ),
+  },
+);
+const TranslationsManager = dynamic(
+  () =>
+    import('@/components/TranslationsManager').then(
+      (m) => m.TranslationsManager,
+    ),
+  { ssr: false },
+);
+const ImagesManager = dynamic(
+  () => import('@/components/ImagesManager').then((m) => m.ImagesManager),
+  { ssr: false },
+);
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { Article } from '@/lib/types';
 import { api } from '@/lib/api';
@@ -37,12 +38,16 @@ export function TrendingNow() {
               href={`/article/${a.slug}`}
               className="flex items-center gap-3 p-3 group"
             >
-              <img
-                src={a.image_url || FALLBACK_IMG}
-                alt=""
-                loading="lazy"
-                className="w-12 h-12 rounded object-cover shrink-0"
-              />
+              <div className="relative w-12 h-12 rounded overflow-hidden shrink-0 bg-surface-100 dark:bg-navy-700">
+                <Image
+                  src={a.image_url || FALLBACK_IMG}
+                  alt=""
+                  fill
+                  sizes="48px"
+                  loading="lazy"
+                  className="object-cover"
+                />
+              </div>
               <p className="text-[13px] font-semibold text-navy-900 leading-snug line-clamp-2 flex-1 group-hover:text-brand-600 dark:text-navy-50 dark:group-hover:text-brand-300">
                 {a.title}
               </p>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { Article } from '@/lib/types';
 import { api } from '@/lib/api';
@@ -56,12 +57,16 @@ export function LatestSidebar() {
                 <span className="w-6 h-6 grid place-items-center rounded-full bg-brand-500 text-white text-[11px] font-bold shrink-0">
                   {String(idx + 1).padStart(2, '0')}
                 </span>
-                <img
-                  src={a.image_url || FALLBACK_IMG}
-                  alt=""
-                  loading="lazy"
-                  className="w-12 h-12 rounded object-cover shrink-0"
-                />
+                <div className="relative w-12 h-12 rounded overflow-hidden shrink-0 bg-surface-100 dark:bg-navy-700">
+                  <Image
+                    src={a.image_url || FALLBACK_IMG}
+                    alt=""
+                    fill
+                    sizes="48px"
+                    loading="lazy"
+                    className="object-cover"
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-semibold text-navy-900 leading-snug line-clamp-2 group-hover:text-brand-600 dark:text-navy-50 dark:group-hover:text-brand-300">
                     {a.title}
