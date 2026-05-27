@@ -36,6 +36,27 @@ const EXTRA_CATEGORIES = [
   { id: 'static-career-job', name: 'Career/Job', slug: 'career-job' },
 ];
 
+// Fixed navbar order. First 6 land in the main bar, the rest under "More".
+const CATEGORY_ORDER = [
+  'national',
+  'international',
+  'politics',
+  'crime',
+  'business',
+  'career-job',
+  'health',
+  'sports',
+  'automobile',
+];
+
+const orderCategories = (cats: Category[]) => {
+  const rank = (slug: string) => {
+    const i = CATEGORY_ORDER.indexOf(slug.toLowerCase());
+    return i === -1 ? CATEGORY_ORDER.length : i;
+  };
+  return [...cats].sort((a, b) => rank(a.slug) - rank(b.slug));
+};
+
 const slugify = (s: string) =>
   s
     .toLowerCase()
@@ -85,15 +106,17 @@ export function Header() {
           ...filtered,
           ...EXTRA_CATEGORIES.filter((e) => !existing.has(e.slug)),
         ];
-        setCategories(merged);
+        setCategories(orderCategories(merged));
       })
       .catch(() =>
         setCategories(
-          FALLBACK_CATEGORIES.map((n, i) => ({
-            id: `fb-${i}`,
-            name: n,
-            slug: slugify(n),
-          })),
+          orderCategories(
+            FALLBACK_CATEGORIES.map((n, i) => ({
+              id: `fb-${i}`,
+              name: n,
+              slug: slugify(n),
+            })),
+          ),
         ),
       );
   }, []);

@@ -6,6 +6,8 @@ import { CategoriesService } from './categories/categories.service';
 import { LocationsService } from './locations/locations.service';
 
 const DEFAULT_CATEGORIES = [
+  'National',
+  'International',
   'Sports',
   'Business',
   'Health',
@@ -19,8 +21,6 @@ const DEFAULT_LOCATIONS = [
   'Punjab',
   'Haryana',
   'Chandigarh',
-  'National',
-  'International',
 ];
 
 export async function seedManager(app: INestApplicationContext) {
