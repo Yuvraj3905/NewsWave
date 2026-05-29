@@ -19,7 +19,7 @@ export default function NewArticlePage() {
   if (!ready) return null;
   return (
     <AdminShell>
-      <h1 className="text-2xl font-extrabold text-brand-900 mb-6">
+      <h1 className="text-xl sm:text-2xl font-extrabold text-brand-900 mb-4 sm:mb-6">
         New Article
       </h1>
       <ArticleForm />

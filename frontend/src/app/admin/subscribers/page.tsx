@@ -73,13 +73,13 @@ export default function SubscribersPage() {
 
   return (
     <AdminShell>
-      <h1 className="text-2xl font-extrabold text-brand-900 mb-6">
+      <h1 className="text-xl sm:text-2xl font-extrabold text-brand-900 mb-4 sm:mb-6">
         Subscribers
       </h1>
 
       <form
         onSubmit={onAdd}
-        className="bg-white border border-ink-300/40 rounded-lg shadow-card p-4 mb-6 grid gap-3 md:grid-cols-[1fr_1fr_auto]"
+        className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3 sm:p-4 mb-4 sm:mb-6 grid gap-2 sm:gap-3 sm:grid-cols-[1fr_1fr_auto]"
       >
         <input
           type="email"
@@ -110,7 +110,7 @@ export default function SubscribersPage() {
         </div>
       )}
 
-      <div className="bg-white border border-ink-300/40 rounded-lg shadow-card overflow-hidden">
+      <div className="hidden md:block bg-white border border-ink-300/40 rounded-lg shadow-card overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-surface-100 text-ink-700 text-left">
             <tr>
@@ -170,6 +170,57 @@ export default function SubscribersPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="md:hidden space-y-3">
+        {items.length === 0 && (
+          <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-4 text-center text-sm text-ink-500">
+            No subscribers yet.
+          </div>
+        )}
+        {items.map((s) => (
+          <div
+            key={s.id}
+            className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3"
+          >
+            <div className="flex items-start gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm break-all">{s.email}</div>
+                {s.name && (
+                  <div className="text-xs text-ink-700 mt-0.5">{s.name}</div>
+                )}
+                <div className="text-[11px] text-ink-500 mt-1">
+                  {formatIST(s.created_at)}
+                </div>
+              </div>
+              {s.active ? (
+                <span className="shrink-0 text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+                  Active
+                </span>
+              ) : (
+                <span className="shrink-0 text-[10px] font-semibold text-ink-500 bg-surface-100 px-2 py-0.5 rounded-full">
+                  Revoked
+                </span>
+              )}
+            </div>
+            <div className="mt-3 flex items-center justify-end gap-3">
+              {s.active && (
+                <button
+                  onClick={() => onRevoke(s.id)}
+                  className="text-ink-700 hover:underline text-xs font-semibold"
+                >
+                  Revoke
+                </button>
+              )}
+              <button
+                onClick={() => onDelete(s.id)}
+                className="text-accent-600 hover:underline text-xs font-semibold"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </AdminShell>
   );

@@ -206,8 +206,12 @@ export class ArticlesService implements OnModuleInit {
       .leftJoinAndSelect('article.images', 'image')
       .orderBy('article.display_order', 'ASC', 'NULLS LAST')
       .addOrderBy('article.published_at', 'DESC', 'NULLS LAST')
-      .addOrderBy('article.created_at', 'DESC')
-      .addOrderBy('image.position', 'ASC');
+      .addOrderBy('article.created_at', 'DESC');
+    // NOTE: do NOT order by image.position here. TypeORM 0.3 disables its
+    // distinct-paging when ORDER BY references a joined alias, applying
+    // LIMIT to the joined cartesian product. That collapses N pages into
+    // a handful of distinct articles. Image order is handled per-article
+    // in the detail endpoint.
 
     if (!query.includeUnpublished) {
       qb.andWhere('article.published = :p', { p: true });
@@ -249,16 +253,9 @@ export class ArticlesService implements OnModuleInit {
     }
     // COALESCE is OK in WHERE; TypeORM only mis-parses dotted refs in ORDER BY.
 
-    if (lang !== 'en') {
-      qb.andWhere(
-        `EXISTS (
-          SELECT 1 FROM article_translations t_filter
-          WHERE t_filter.article_id = article.id
-          AND t_filter.language = :langFilter
-        )`,
-        { langFilter: lang },
-      );
-    }
+    // No language gate: every published article appears in every language.
+    // applyLang() swaps in the translated fields when present and falls back
+    // to the English source otherwise.
 
     qb.skip(query.offset || 0).take(query.limit || 20);
 
@@ -319,8 +316,9 @@ export class ArticlesService implements OnModuleInit {
         .slice()
         .sort((a, b) => a.position - b.position);
     }
-    article.views += 1;
-    await this.repo.save(article);
+    this.repo
+      .increment({ id: article.id }, 'views', 1)
+      .catch((e) => this.logger.warn(`views increment failed: ${e?.message}`));
     return maskViews(applyLang(article, lang));
   }
 
@@ -331,14 +329,20 @@ export class ArticlesService implements OnModuleInit {
   }
 
   async related(slug: string, limit = 5, lang: ArticleLanguage = 'en') {
-    let article = await this.repo.findOne({ where: { slug } });
+    let article = await this.repo.findOne({
+      where: { slug },
+      relations: ['categories'],
+    });
     if (!article) {
       const t = await this.translationRepo.findOne({
         where: { slug },
         relations: ['article'],
       });
       if (t?.article) {
-        article = await this.repo.findOne({ where: { id: t.article_id } });
+        article = await this.repo.findOne({
+          where: { id: t.article_id },
+          relations: ['categories'],
+        });
       }
     }
     if (!article) return [];

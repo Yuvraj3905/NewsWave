@@ -25,20 +25,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     .sort((a, b) => b.length - a.length)[0];
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-[200px_minmax(0,1fr)] lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="bg-white rounded-lg border border-ink-300/40 shadow-card p-3 sm:p-4 h-max md:sticky md:top-4">
-          <div className="text-xs uppercase tracking-widest text-ink-500 mb-2">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-6">
+      <div className="grid gap-3 sm:gap-6 md:grid-cols-[200px_minmax(0,1fr)] lg:grid-cols-[220px_minmax(0,1fr)]">
+        <aside className="bg-white rounded-lg border border-ink-300/40 shadow-card p-2 sm:p-4 h-max md:sticky md:top-4">
+          <div className="hidden md:block text-xs uppercase tracking-widest text-ink-500 mb-2">
             Manager
           </div>
-          <nav className="flex md:flex-col gap-1 flex-wrap">
+          <nav className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible -mx-1 px-1 md:mx-0 md:px-0">
             {NAV.map((item) => {
               const active = item.href === bestMatch;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-2 rounded text-sm font-medium transition ${
+                  className={`whitespace-nowrap px-3 py-2 rounded text-sm font-medium transition ${
                     active
                       ? 'bg-brand-700 text-white'
                       : 'text-ink-700 hover:bg-surface-100'
@@ -50,13 +50,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             })}
             <button
               onClick={logout}
-              className="md:mt-3 text-left px-3 py-2 rounded text-sm font-medium text-accent-600 hover:bg-accent-500/10"
+              className="whitespace-nowrap md:mt-3 text-left px-3 py-2 rounded text-sm font-medium text-accent-600 hover:bg-accent-500/10"
             >
               Logout
             </button>
           </nav>
         </aside>
-        <section>{children}</section>
+        <section className="min-w-0">{children}</section>
       </div>
     </div>
   );

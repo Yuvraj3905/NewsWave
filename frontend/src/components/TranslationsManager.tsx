@@ -102,7 +102,7 @@ export function TranslationsManager({ articleId }: Props) {
   };
 
   return (
-    <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-6">
+    <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3 sm:p-6">
       <h2 className="text-lg font-bold text-brand-900 mb-1">
         Translations
       </h2>

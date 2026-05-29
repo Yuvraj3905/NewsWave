@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
@@ -10,6 +11,13 @@ import { LatestSidebar } from '@/components/LatestSidebar';
 import { ArticleCard } from '@/components/ArticleCard';
 import { ShareButtons } from '@/components/ShareButtons';
 import { Language } from '@/lib/types';
+
+const getArticle = cache((slug: string, lang: Language) =>
+  api.articleBySlug(slug, lang),
+);
+const getRelated = cache((slug: string, lang: Language) =>
+  api.relatedArticles(slug, lang),
+);
 
 const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: [
@@ -48,7 +56,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   try {
-    const article = await api.articleBySlug(params.slug, readLang());
+    const article = await getArticle(params.slug, readLang());
     return {
       title: article.title,
       description:
@@ -67,19 +75,13 @@ export async function generateMetadata({
 
 export default async function ArticlePage({ params }: PageProps) {
   const lang = readLang();
-  let article;
-  try {
-    article = await api.articleBySlug(params.slug, lang);
-  } catch {
-    notFound();
-  }
-
-  let related: Awaited<ReturnType<typeof api.relatedArticles>> = [];
-  try {
-    related = await api.relatedArticles(params.slug, lang);
-  } catch {
-    related = [];
-  }
+  const [articleRes, relatedRes] = await Promise.allSettled([
+    getArticle(params.slug, lang),
+    getRelated(params.slug, lang),
+  ]);
+  if (articleRes.status !== 'fulfilled') notFound();
+  const article = articleRes.value;
+  const related = relatedRes.status === 'fulfilled' ? relatedRes.value : [];
 
   const gallery = (article.images || []).slice().sort(
     (a, b) => a.position - b.position,
