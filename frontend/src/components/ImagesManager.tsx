@@ -82,7 +82,7 @@ export function ImagesManager({ articleId }: Props) {
   };
 
   return (
-    <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-6">
+    <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3 sm:p-6">
       <h2 className="text-lg font-bold text-brand-900 mb-1">Photo Gallery</h2>
       <p className="text-xs text-ink-500 mb-4">
         Add multiple images shown alongside the main hero image on the article page.
@@ -94,7 +94,7 @@ export function ImagesManager({ articleId }: Props) {
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 mb-5">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-2 mb-5">
         <div className="border border-ink-300 rounded-lg p-3">
           <label className="block text-xs font-semibold text-ink-700 mb-2">
             Upload files (up to 10)

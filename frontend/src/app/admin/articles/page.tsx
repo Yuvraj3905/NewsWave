@@ -365,7 +365,7 @@ export default function AdminArticlesPage() {
         </button>
       </div>
 
-      <div className="bg-white border border-ink-300/40 rounded-lg shadow-card overflow-x-auto">
+      <div className="hidden md:block bg-white border border-ink-300/40 rounded-lg shadow-card overflow-x-auto">
         <table className="w-full text-sm min-w-[1000px]">
           <thead className="bg-surface-100 text-ink-700 text-left">
             <tr>
@@ -483,6 +483,116 @@ export default function AdminArticlesPage() {
             })}
           </tbody>
         </table>
+      </div>
+
+      <div className="md:hidden space-y-3">
+        {loading && (
+          <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-4 text-center text-sm text-ink-500">
+            Loading...
+          </div>
+        )}
+        {!loading && items.length === 0 && (
+          <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-4 text-center text-sm text-ink-500">
+            No articles match the current filters.
+          </div>
+        )}
+        {items.map((a) => {
+          const cats = (a.categories || []).map((c) => c.name).join(', ');
+          const locs = (a.locations || []).map((l) => l.name).join(', ');
+          const langs = articleLangs(a)
+            .map((l) => l.toUpperCase())
+            .join(', ');
+          const displayDate = a.published_at || a.created_at;
+          const editedOrder = orderEdits[a.id];
+          const currentOrder =
+            editedOrder !== undefined
+              ? editedOrder
+              : a.display_order === null || a.display_order === undefined
+                ? ''
+                : String(a.display_order);
+          return (
+            <div
+              key={a.id}
+              className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3"
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <Link
+                    href={`/admin/articles/${a.id}`}
+                    className="font-semibold text-brand-700 hover:underline line-clamp-2 text-sm"
+                  >
+                    {a.title}
+                  </Link>
+                  <div className="text-[11px] text-ink-500 mt-0.5 truncate">
+                    {a.slug}
+                  </div>
+                </div>
+                {a.published ? (
+                  <span className="shrink-0 text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+                    Published
+                  </span>
+                ) : (
+                  <span className="shrink-0 text-[10px] font-semibold text-ink-500 bg-surface-100 px-2 py-0.5 rounded-full">
+                    Draft
+                  </span>
+                )}
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-ink-700">
+                <div>
+                  <span className="text-ink-500">Cat:</span>{' '}
+                  {cats || <span className="text-ink-500">—</span>}
+                </div>
+                <div>
+                  <span className="text-ink-500">Loc:</span>{' '}
+                  {locs || <span className="text-ink-500">—</span>}
+                </div>
+                <div>
+                  <span className="text-ink-500">Lang:</span> {langs}
+                </div>
+                <div>
+                  <span className="text-ink-500">Views:</span> {a.views}
+                </div>
+                <div className="col-span-2 text-ink-500">
+                  {formatIST(displayDate)}
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <label className="flex items-center gap-2 text-[11px] text-ink-700">
+                  <span>Order</span>
+                  <input
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={currentOrder}
+                    onChange={(e) =>
+                      setOrderEdits((prev) => ({
+                        ...prev,
+                        [a.id]: e.target.value,
+                      }))
+                    }
+                    placeholder="—"
+                    className="w-16 border border-ink-300 rounded px-2 py-1 text-xs text-center"
+                    aria-label={`Display order for ${a.title}`}
+                  />
+                </label>
+                <div className="flex items-center gap-3">
+                  <Link
+                    href={`/admin/articles/${a.id}`}
+                    className="text-brand-700 hover:underline text-xs font-semibold"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => onDelete(a.id)}
+                    className="text-accent-600 hover:underline text-xs font-semibold"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </AdminShell>
   );

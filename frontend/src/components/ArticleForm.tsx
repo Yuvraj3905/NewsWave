@@ -13,6 +13,9 @@ interface Props {
 
 type LangContent = { title: string; description: string; content: string };
 const EMPTY_LC: LangContent = { title: '', description: '', content: '' };
+// National/International are categories, not locations — keep them out of the
+// location selector even if legacy location rows still exist in the DB.
+const HIDDEN_LOCATION_SLUGS = new Set(['national', 'international']);
 const TABS: { key: Language; label: string; required: boolean }[] = [
   { key: 'en', label: 'English', required: true },
   { key: 'hi', label: 'हिन्दी (Hindi)', required: false },
@@ -75,7 +78,14 @@ export function ArticleForm({ initial }: Props) {
 
   useEffect(() => {
     api.listCategories().then(setCategories).catch(() => setCategories([]));
-    api.listLocations().then(setLocations).catch(() => setLocations([]));
+    api
+      .listLocations()
+      .then((rows) =>
+        setLocations(
+          rows.filter((l) => !HIDDEN_LOCATION_SLUGS.has(l.slug.toLowerCase())),
+        ),
+      )
+      .catch(() => setLocations([]));
   }, []);
 
   useEffect(() => {
@@ -209,7 +219,7 @@ export function ArticleForm({ initial }: Props) {
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       <div className="bg-white border border-ink-300/40 rounded-lg shadow-card overflow-hidden">
-        <div className="flex border-b border-ink-300/40 bg-surface-50">
+        <div className="flex border-b border-ink-300/40 bg-surface-50 overflow-x-auto">
           {TABS.map((t) => {
             const lc = byLang[t.key];
             const filled = lc.title.trim() && lc.content.trim();
@@ -219,7 +229,7 @@ export function ArticleForm({ initial }: Props) {
                 key={t.key}
                 type="button"
                 onClick={() => setActiveTab(t.key)}
-                className={`px-4 py-3 text-sm font-semibold border-b-2 transition flex items-center gap-2 ${
+                className={`whitespace-nowrap px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold border-b-2 transition flex items-center gap-2 ${
                   active
                     ? 'border-brand-500 text-brand-500 bg-white'
                     : 'border-transparent text-ink-700 hover:text-brand-500'
@@ -237,7 +247,7 @@ export function ArticleForm({ initial }: Props) {
           })}
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-3 sm:p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-ink-700 mb-1">
               Title{activeTab === 'en' && <span className="text-brand-500"> *</span>}
@@ -336,7 +346,7 @@ export function ArticleForm({ initial }: Props) {
       </div>
 
       {!isEdit && (
-        <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-6">
+        <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3 sm:p-6">
           <h3 className="font-bold text-ink-900 text-sm mb-1">
             Auto-Post to Social
           </h3>
@@ -378,7 +388,7 @@ export function ArticleForm({ initial }: Props) {
         </div>
       )}
 
-      <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-6">
+      <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3 sm:p-6">
         <label className="block text-sm font-medium text-ink-700 mb-2">
           Hero Image
         </label>
@@ -427,7 +437,7 @@ export function ArticleForm({ initial }: Props) {
         </div>
       </div>
 
-      <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-6 grid gap-6 md:grid-cols-2">
+      <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3 sm:p-6 grid gap-4 sm:gap-6 md:grid-cols-2">
         <div>
           <label className="block text-sm font-medium text-ink-700 mb-2">
             Categories
@@ -486,7 +496,7 @@ export function ArticleForm({ initial }: Props) {
         </div>
       </div>
 
-      <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-6">
+      <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3 sm:p-6">
         <div className="flex items-center justify-between mb-2">
           <label className="block text-sm font-medium text-ink-700">
             Gallery Images (Optional)

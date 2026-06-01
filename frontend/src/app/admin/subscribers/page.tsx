@@ -102,7 +102,7 @@ export default function SubscribersPage() {
 
   return (
     <AdminShell>
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div className="flex items-center justify-between mb-4 sm:mb-6 flex-wrap gap-3">
         <h1 className="text-xl sm:text-2xl font-extrabold text-brand-900 dark:text-white">
           Subscribers
         </h1>
@@ -123,7 +123,7 @@ export default function SubscribersPage() {
 
       <form
         onSubmit={onAdd}
-        className="bg-white border border-ink-300/40 rounded-lg shadow-card p-4 mb-4 grid gap-3 md:grid-cols-[1fr_1fr_auto] dark:bg-navy-800 dark:border-navy-700"
+        className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3 sm:p-4 mb-4 sm:mb-6 grid gap-2 sm:gap-3 md:grid-cols-[1fr_1fr_auto] dark:bg-navy-800 dark:border-navy-700"
       >
         <input
           type="email"
@@ -181,9 +181,10 @@ export default function SubscribersPage() {
         </div>
       )}
 
-      <div className="bg-white border border-ink-300/40 rounded-lg shadow-card overflow-x-auto dark:bg-navy-800 dark:border-navy-700">
+      <div className="hidden md:block bg-white border border-ink-300/40 rounded-lg shadow-card overflow-x-auto dark:bg-navy-800 dark:border-navy-700">
         <table className="w-full text-sm min-w-[720px]">
           <thead className="bg-surface-100 text-ink-700 text-left dark:bg-navy-700 dark:text-navy-100">
+
             <tr>
               <th className="px-4 py-2.5">Email</th>
               <th className="px-4 py-2.5">Name</th>
@@ -256,6 +257,72 @@ export default function SubscribersPage() {
             })}
           </tbody>
         </table>
+      </div>
+
+      <div className="md:hidden space-y-3">
+        {items.length === 0 && (
+          <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-4 text-center text-sm text-ink-500 dark:bg-navy-800 dark:border-navy-700 dark:text-navy-300">
+            No subscribers in this view.
+          </div>
+        )}
+        {items.map((s) => {
+          const status: SubscriberStatus = s.status || 'pending';
+          const busy = busyId === s.id;
+          return (
+            <div
+              key={s.id}
+              className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3 dark:bg-navy-800 dark:border-navy-700"
+            >
+              <div className="flex items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm break-all dark:text-navy-50">
+                    {s.email}
+                  </div>
+                  {s.name && (
+                    <div className="text-xs text-ink-700 mt-0.5 dark:text-navy-200">
+                      {s.name}
+                    </div>
+                  )}
+                  <div className="text-[11px] text-ink-500 mt-1 dark:text-navy-300">
+                    {formatIST(s.created_at)}
+                  </div>
+                </div>
+                <span
+                  className={`shrink-0 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full ${STATUS_PILL[status]}`}
+                >
+                  {status}
+                </span>
+              </div>
+              <div className="mt-3 flex items-center justify-end gap-3">
+                {status !== 'approved' && (
+                  <button
+                    disabled={busy}
+                    onClick={() => onAction(s.id, 'approve')}
+                    className="text-green-700 hover:underline disabled:opacity-50 text-xs font-semibold dark:text-green-300"
+                  >
+                    Approve
+                  </button>
+                )}
+                {status !== 'rejected' && (
+                  <button
+                    disabled={busy}
+                    onClick={() => onAction(s.id, 'reject')}
+                    className="text-ink-700 hover:underline disabled:opacity-50 text-xs font-semibold dark:text-navy-200"
+                  >
+                    Reject
+                  </button>
+                )}
+                <button
+                  disabled={busy}
+                  onClick={() => onAction(s.id, 'delete')}
+                  className="text-accent-600 hover:underline disabled:opacity-50 text-xs font-semibold"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <p className="text-[11px] text-ink-500 mt-3 dark:text-navy-300">
