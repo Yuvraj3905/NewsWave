@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { clearToken } from './AdminAuth';
+import { useEffect, useState } from 'react';
+import { clearToken, getToken } from './AdminAuth';
+import { api } from '@/lib/api';
 
 const NAV = [
   { href: '/admin/dashboard', label: 'Overview' },
@@ -14,11 +16,27 @@ const NAV = [
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
 
   function logout() {
     clearToken();
     router.replace('/admin');
   }
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    let cancelled = false;
+    api
+      .adminSubscriberCount(token)
+      .then((c) => {
+        if (!cancelled) setPendingCount(c?.pending ?? 0);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   const bestMatch = NAV.map((n) => n.href)
     .filter((h) => pathname === h || pathname.startsWith(h + '/'))
@@ -34,17 +52,32 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <nav className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible -mx-1 px-1 md:mx-0 md:px-0">
             {NAV.map((item) => {
               const active = item.href === bestMatch;
+              const isSubs = item.href === '/admin/subscribers';
+              const showBadge =
+                isSubs && pendingCount !== null && pendingCount > 0;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`whitespace-nowrap px-3 py-2 rounded text-sm font-medium transition ${
+                  className={`whitespace-nowrap px-3 py-2 rounded text-sm font-medium transition flex items-center justify-between gap-2 ${
                     active
                       ? 'bg-brand-700 text-white'
                       : 'text-ink-700 hover:bg-surface-100'
                   }`}
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  {showBadge && (
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        active
+                          ? 'bg-white/20 text-white'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}
+                      aria-label={`${pendingCount} pending`}
+                    >
+                      {pendingCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}
