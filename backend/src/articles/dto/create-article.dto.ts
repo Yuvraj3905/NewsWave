@@ -54,6 +54,13 @@ export class CreateArticleDto {
   @IsString()
   author?: string;
 
+  @ApiPropertyOptional({
+    description: 'Hero image by URL. Used when no file is uploaded.',
+  })
+  @IsOptional()
+  @IsString()
+  image_url?: string;
+
   @ApiPropertyOptional({ type: [String] })
   @IsOptional()
   @IsArray()

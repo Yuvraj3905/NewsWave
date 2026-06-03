@@ -7,6 +7,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { useRouter } from 'next/navigation';
 import { Language } from '@/lib/types';
 
 interface LanguageContextValue {
@@ -27,6 +28,7 @@ const setCookie = (val: string) => {
 };
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [language, setLanguageState] = useState<Language>('en');
 
   useEffect(() => {
@@ -36,13 +38,19 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setCookie(saved);
   }, []);
 
-  const setLanguage = useCallback((lang: Language) => {
-    setLanguageState(lang);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(LANG_KEY, lang);
-      setCookie(lang);
-    }
-  }, []);
+  const setLanguage = useCallback(
+    (lang: Language) => {
+      setLanguageState(lang);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LANG_KEY, lang);
+        setCookie(lang);
+        // Re-render server components (e.g. article page) that read the
+        // language cookie, so the switch applies without a manual reload.
+        router.refresh();
+      }
+    },
+    [router],
+  );
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage }}>

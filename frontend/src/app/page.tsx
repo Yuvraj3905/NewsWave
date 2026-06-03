@@ -23,7 +23,7 @@ export default function HomePage() {
             <MainFeed />
           </div>
 
-          <aside className="space-y-5">
+          <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
             <LatestSidebar />
             <TrendingNow />
             <NewsletterCard />
