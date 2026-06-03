@@ -66,6 +66,7 @@ export function ArticleForm({ initial }: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(
     initial?.image_url || null,
   );
+  const [imageUrl, setImageUrl] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -118,6 +119,7 @@ export function ArticleForm({ initial }: Props) {
 
   function handleFile(file: File | undefined) {
     if (!file) return;
+    setImageUrl('');
     const reader = new FileReader();
     reader.onload = () => setImagePreview(reader.result as string);
     reader.readAsDataURL(file);
@@ -171,6 +173,7 @@ export function ArticleForm({ initial }: Props) {
 
       const file = fileRef.current?.files?.[0];
       if (file) fd.append('image', file);
+      else if (imageUrl.trim()) fd.append('image_url', imageUrl.trim());
 
       let savedId: string | undefined;
       if (isEdit && initial) {
@@ -434,6 +437,27 @@ export function ArticleForm({ initial }: Props) {
             className="hidden"
             onChange={(e) => handleFile(e.target.files?.[0])}
           />
+        </div>
+
+        <div className="mt-3">
+          <label className="block text-xs font-medium text-ink-500 mb-1">
+            Or paste an image URL
+          </label>
+          <input
+            type="url"
+            value={imageUrl}
+            placeholder="https://example.com/photo.jpg"
+            onChange={(e) => {
+              const v = e.target.value;
+              setImageUrl(v);
+              if (fileRef.current) fileRef.current.value = '';
+              setImagePreview(v.trim() || initial?.image_url || null);
+            }}
+            className="w-full border border-ink-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+          <p className="text-[11px] text-ink-500 mt-1">
+            Used when no file is uploaded. Uploading a file overrides this.
+          </p>
         </div>
       </div>
 

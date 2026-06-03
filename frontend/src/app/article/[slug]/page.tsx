@@ -10,6 +10,7 @@ import { formatIST } from '@/lib/format';
 import { LatestSidebar } from '@/components/LatestSidebar';
 import { ArticleCard } from '@/components/ArticleCard';
 import { ShareButtons } from '@/components/ShareButtons';
+import { Gallery } from '@/components/Gallery';
 import { Language } from '@/lib/types';
 
 const getArticle = cache((slug: string, lang: Language) =>
@@ -167,36 +168,7 @@ export default async function ArticlePage({ params }: PageProps) {
             <ShareButtons title={article.title} slug={article.slug} />
 
             {gallery.length > 0 && (
-              <section className="mt-8">
-                <h2 className="text-xl font-bold text-navy-900 mb-4 dark:text-white">
-                  Photo Gallery
-                </h2>
-                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                  {gallery.map((img) => (
-                    <a
-                      key={img.id}
-                      href={img.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block relative overflow-hidden rounded-lg border border-navy-100 hover:shadow-card transition h-44 bg-surface-100 dark:bg-navy-700"
-                    >
-                      <Image
-                        src={img.url}
-                        alt={img.alt || article.title}
-                        fill
-                        loading="lazy"
-                        sizes="(min-width: 768px) 30vw, 50vw"
-                        className="object-cover"
-                      />
-                      {img.alt && (
-                        <span className="absolute inset-x-0 bottom-0 bg-black/55 text-white text-xs px-2 py-1">
-                          {img.alt}
-                        </span>
-                      )}
-                    </a>
-                  ))}
-                </div>
-              </section>
+              <Gallery images={gallery} title={article.title} />
             )}
 
             <hr className="my-8 border-navy-100 dark:border-navy-700" />

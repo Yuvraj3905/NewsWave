@@ -141,6 +141,8 @@ export class ArticlesService implements OnModuleInit {
         file.originalname,
       );
       if (uploaded) imageUrl = uploaded;
+    } else if (dto.image_url?.trim()) {
+      imageUrl = dto.image_url.trim();
     }
 
     const slug = await this.generateUniqueSlug(dto.title);
@@ -405,6 +407,8 @@ export class ArticlesService implements OnModuleInit {
         file.originalname,
       );
       if (uploaded) article.image_url = uploaded;
+    } else if (dto.image_url?.trim()) {
+      article.image_url = dto.image_url.trim();
     }
 
     return this.repo.save(article);

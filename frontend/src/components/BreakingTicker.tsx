@@ -11,7 +11,7 @@ export function BreakingTicker() {
   const [items, setItems] = useState<Article[]>([]);
   const [paused, setPaused] = useState(false);
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const [duration, setDuration] = useState(40);
+  const [duration, setDuration] = useState(12);
 
   useEffect(() => {
     api
@@ -23,7 +23,7 @@ export function BreakingTicker() {
   useEffect(() => {
     if (!trackRef.current) return;
     const w = trackRef.current.scrollWidth / 2;
-    const seconds = Math.max(20, Math.min(90, Math.round(w / 60)));
+    const seconds = Math.max(4, Math.min(20, Math.round(w / 400)));
     setDuration(seconds);
   }, [items]);
 

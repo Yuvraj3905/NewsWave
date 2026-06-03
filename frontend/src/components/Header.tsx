@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useNewsFilter } from './LocationContext';
 import { LANG_LABELS, LANG_OPTIONS, useLanguage } from './LanguageContext';
@@ -66,6 +67,16 @@ const slugify = (s: string) =>
 export function Header() {
   const { location, category, search, setLocation, setCategory, setSearch } = useNewsFilter();
   const { language, setLanguage } = useLanguage();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Selecting a category updates the shared filter. When the user is reading an
+  // article (or any non-home page) also route back to the home feed so the
+  // nav buttons stay active instead of looking disabled.
+  const selectCategory = (slug: string) => {
+    setCategory(slug);
+    if (pathname !== '/') router.push('/');
+  };
   const [locations, setLocations] = useState<Location[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -219,15 +230,15 @@ export function Header() {
 
           <nav className="hidden lg:flex items-center gap-1 text-sm font-semibold flex-1 justify-center">
             <NavBtn
-              active={category === ''}
-              onClick={() => setCategory('')}
+              active={category === '' && pathname === '/'}
+              onClick={() => selectCategory('')}
               label="Home"
             />
             {categories.slice(0, 6).map((c) => (
               <NavBtn
                 key={c.id}
-                active={category === c.slug}
-                onClick={() => setCategory(c.slug)}
+                active={category === c.slug && pathname === '/'}
+                onClick={() => selectCategory(c.slug)}
                 label={c.name}
               />
             ))}
@@ -263,7 +274,7 @@ export function Header() {
                         key={c.id}
                         role="menuitem"
                         onClick={() => {
-                          setCategory(c.slug);
+                          selectCategory(c.slug);
                           setMoreOpen(false);
                         }}
                         className="block w-full text-left px-4 py-1.5 text-sm text-navy-700 hover:bg-surface-100 hover:text-brand-600 dark:text-navy-100 dark:hover:bg-navy-700 dark:hover:text-brand-300"
@@ -374,11 +385,11 @@ export function Header() {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => {
-                    setCategory('');
+                    selectCategory('');
                     setMobileOpen(false);
                   }}
                   className={`px-3 py-2 rounded text-sm font-semibold ${
-                    category === ''
+                    category === '' && pathname === '/'
                       ? 'bg-brand-500 text-white'
                       : 'bg-surface-100 text-navy-700 dark:bg-navy-700 dark:text-navy-100'
                   }`}
@@ -389,11 +400,11 @@ export function Header() {
                   <button
                     key={c.id}
                     onClick={() => {
-                      setCategory(c.slug);
+                      selectCategory(c.slug);
                       setMobileOpen(false);
                     }}
                     className={`px-3 py-2 rounded text-sm font-semibold ${
-                      category === c.slug
+                      category === c.slug && pathname === '/'
                         ? 'bg-brand-500 text-white'
                         : 'bg-surface-100 text-navy-700 dark:bg-navy-700 dark:text-navy-100'
                     }`}
