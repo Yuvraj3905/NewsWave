@@ -4,6 +4,7 @@ import { TrendingNow } from '@/components/TrendingNow';
 import { NewsletterCard } from '@/components/NewsletterCard';
 import { ExploreMore } from '@/components/ExploreMore';
 import { BreakingTicker } from '@/components/BreakingTicker';
+import { StickyBottomAside } from '@/components/StickyBottomAside';
 
 export default function HomePage() {
   return (
@@ -23,11 +24,11 @@ export default function HomePage() {
             <MainFeed />
           </div>
 
-          <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
+          <StickyBottomAside>
             <LatestSidebar />
             <TrendingNow />
             <NewsletterCard />
-          </aside>
+          </StickyBottomAside>
         </div>
 
         <div className="mt-8 lg:mt-10">
