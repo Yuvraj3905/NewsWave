@@ -72,6 +72,8 @@ export function ArticleForm({ initial }: Props) {
 
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [galleryUrlInput, setGalleryUrlInput] = useState('');
   const galleryRef = useRef<HTMLInputElement>(null);
 
   const [submitting, setSubmitting] = useState(false);
@@ -128,7 +130,10 @@ export function ArticleForm({ initial }: Props) {
   function handleGalleryFiles(files: FileList | null) {
     if (!files) return;
     const max = 8;
-    const incoming = Array.from(files).slice(0, max - galleryFiles.length);
+    const incoming = Array.from(files).slice(
+      0,
+      max - galleryFiles.length - galleryUrls.length,
+    );
     if (incoming.length === 0) return;
     setGalleryFiles((prev) => [...prev, ...incoming]);
     incoming.forEach((f) => {
@@ -142,6 +147,18 @@ export function ArticleForm({ initial }: Props) {
   function removeGalleryAt(idx: number) {
     setGalleryFiles((prev) => prev.filter((_, i) => i !== idx));
     setGalleryPreviews((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  function addGalleryUrl() {
+    const v = galleryUrlInput.trim();
+    if (!v) return;
+    if (galleryFiles.length + galleryUrls.length >= 8) return;
+    setGalleryUrls((prev) => [...prev, v]);
+    setGalleryUrlInput('');
+  }
+
+  function removeGalleryUrlAt(idx: number) {
+    setGalleryUrls((prev) => prev.filter((_, i) => i !== idx));
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -207,6 +224,16 @@ export function ArticleForm({ initial }: Props) {
           await api.adminAddImages(token, savedId, galleryFiles);
         } catch (e: any) {
           setError(`Article saved but gallery upload failed: ${e?.message || e}`);
+        }
+      }
+
+      if (galleryUrls.length > 0 && savedId) {
+        for (const u of galleryUrls) {
+          try {
+            await api.adminAddImageByUrl(token, savedId, u);
+          } catch (e: any) {
+            setError(`Article saved but gallery URL add failed: ${e?.message || e}`);
+          }
         }
       }
 
@@ -526,7 +553,7 @@ export function ArticleForm({ initial }: Props) {
             Gallery Images (Optional)
           </label>
           <span className="text-xs text-ink-500">
-            {galleryFiles.length}/8 selected
+            {galleryFiles.length + galleryUrls.length}/8 selected
           </span>
         </div>
         <p className="text-xs text-ink-500 mb-3">
@@ -552,7 +579,25 @@ export function ArticleForm({ initial }: Props) {
               </button>
             </div>
           ))}
-          {galleryFiles.length < 8 && (
+          {galleryUrls.map((src, i) => (
+            <div
+              key={`url-${i}`}
+              className="relative border border-ink-300/40 rounded-lg overflow-hidden bg-surface-50 aspect-[4/3]"
+            >
+              <img src={src} alt="" className="w-full h-full object-cover" />
+              <span className="absolute bottom-1 left-1 bg-black/55 text-white text-[9px] px-1.5 py-0.5 rounded">
+                URL
+              </span>
+              <button
+                type="button"
+                onClick={() => removeGalleryUrlAt(i)}
+                className="absolute top-1 right-1 bg-black/55 hover:bg-accent-600 text-white text-[10px] px-2 py-0.5 rounded"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          {galleryFiles.length + galleryUrls.length < 8 && (
             <button
               type="button"
               onClick={() => galleryRef.current?.click()}
@@ -576,6 +621,33 @@ export function ArticleForm({ initial }: Props) {
             if (galleryRef.current) galleryRef.current.value = '';
           }}
         />
+        <div className="mt-3 flex gap-2">
+          <input
+            type="url"
+            value={galleryUrlInput}
+            placeholder="Or paste an image URL"
+            onChange={(e) => setGalleryUrlInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addGalleryUrl();
+              }
+            }}
+            disabled={galleryFiles.length + galleryUrls.length >= 8}
+            className="flex-1 border border-ink-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60"
+          />
+          <button
+            type="button"
+            onClick={addGalleryUrl}
+            disabled={
+              !galleryUrlInput.trim() ||
+              galleryFiles.length + galleryUrls.length >= 8
+            }
+            className="bg-brand-700 hover:bg-brand-800 disabled:opacity-60 text-white text-sm font-semibold px-3 py-1.5 rounded whitespace-nowrap"
+          >
+            Add URL
+          </button>
+        </div>
         {isEdit && (
           <p className="text-[11px] text-ink-500 mt-3">
             Note: existing gallery images are managed below.
