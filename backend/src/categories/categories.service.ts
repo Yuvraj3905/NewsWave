@@ -38,13 +38,18 @@ export class CategoriesService {
     return this.repo.save(cat);
   }
 
-  async ensureMany(names: string[]) {
+  async ensureMany(items: Array<string | { name: string; slug: string }>) {
+    const normalized = items.map((i) =>
+      typeof i === 'string' ? { name: i, slug: slugify(i) } : i,
+    );
     const existing = await this.repo.find();
     const existingNames = new Set(existing.map((c) => c.name.toLowerCase()));
-    const toCreate = names.filter((n) => !existingNames.has(n.toLowerCase()));
+    const toCreate = normalized.filter(
+      (n) => !existingNames.has(n.name.toLowerCase()),
+    );
     if (toCreate.length > 0) {
       const records = toCreate.map((n) =>
-        this.repo.create({ name: n, slug: slugify(n) }),
+        this.repo.create({ name: n.name, slug: n.slug }),
       );
       await this.repo.save(records);
     }

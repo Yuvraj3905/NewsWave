@@ -5,7 +5,7 @@ import { Manager } from './managers/manager.entity';
 import { CategoriesService } from './categories/categories.service';
 import { LocationsService } from './locations/locations.service';
 
-const DEFAULT_CATEGORIES = [
+const DEFAULT_CATEGORIES: Array<string | { name: string; slug: string }> = [
   'National',
   'International',
   'Sports',
@@ -14,7 +14,9 @@ const DEFAULT_CATEGORIES = [
   'Automobile',
   'Politics',
   'Crime',
-  'Entertainment',
+  // Explicit slug so it matches the navbar route ('career-job'); the default
+  // slugifier would strip the '/' and produce 'careerjob'.
+  { name: 'Career/Job', slug: 'career-job' },
 ];
 
 const DEFAULT_LOCATIONS = [

@@ -35,7 +35,7 @@ export function ExploreMore() {
       .then(setCats)
       .catch(() =>
         setCats(
-          ['Politics', 'Business', 'Sports', 'Entertainment', 'Tech', 'Health', 'World', 'Crime'].map(
+          ['Politics', 'Business', 'Sports', 'Career/Job', 'Tech', 'Health', 'World', 'Crime'].map(
             (n, i) => ({ id: `fb-${i}`, name: n, slug: slugify(n) }),
           ),
         ),
