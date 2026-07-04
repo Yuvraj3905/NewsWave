@@ -6,7 +6,8 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { LessThanOrEqual, Not, Repository } from 'typeorm';
+import { resolvePublishState } from './scheduling.util';
 import { Article } from './article.entity';
 import {
   ArticleTranslation,
@@ -153,6 +154,11 @@ export class ArticlesService implements OnModuleInit {
       ? await this.locationsService.findByIds(dto.location_ids)
       : [];
 
+    const state = resolvePublishState(
+      { scheduled_at: dto.scheduled_at, published: dto.published },
+      Date.now(),
+    );
+
     const article = this.repo.create({
       title: dto.title,
       slug,
@@ -160,8 +166,11 @@ export class ArticlesService implements OnModuleInit {
       content: dto.content,
       author: dto.author,
       image_url: imageUrl,
-      published: dto.published ?? true,
-      published_at: dto.published_at ? new Date(dto.published_at) : new Date(),
+      published: state.published,
+      published_at:
+        state.published_at ??
+        (dto.published_at ? new Date(dto.published_at) : new Date()),
+      scheduled_at: state.scheduled_at,
       display_order:
         dto.display_order === undefined ? null : dto.display_order,
       categories,
@@ -170,31 +179,68 @@ export class ArticlesService implements OnModuleInit {
 
     const saved = await this.repo.save(article);
 
+    // Scheduled (published=false) articles dispatch nothing now — the scheduler
+    // tick fires the webhook when it flips them live.
     if (saved.published) {
-      const publicUrl = `${process.env.PUBLIC_SITE_URL || ''}/article/${saved.slug}`;
-      const payload = {
-        id: saved.id,
-        title: saved.title,
-        slug: saved.slug,
-        description: saved.description,
-        image_url: saved.image_url,
-        url: publicUrl,
-        categories: categories.map((c) => c.name),
-        locations: locations.map((l) => l.name),
-        published_at: saved.created_at.toISOString(),
-      };
-      await this.webhookService.dispatch(payload);
-      const targets = {
+      await this.dispatchPublish(saved, {
         x: !!dto.post_to_x,
         facebook: !!dto.post_to_facebook,
         instagram: !!dto.post_to_instagram,
-      };
-      if (targets.x || targets.facebook || targets.instagram) {
-        await this.socialService.dispatch(payload, targets);
-      }
+      });
     }
 
     return saved;
+  }
+
+  private async dispatchPublish(
+    article: Article,
+    targets?: { x: boolean; facebook: boolean; instagram: boolean },
+  ) {
+    const publicUrl = `${process.env.PUBLIC_SITE_URL || ''}/article/${article.slug}`;
+    const payload = {
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      description: article.description,
+      image_url: article.image_url,
+      url: publicUrl,
+      categories: (article.categories || []).map((c) => c.name),
+      locations: (article.locations || []).map((l) => l.name),
+      published_at: (article.published_at || article.created_at).toISOString(),
+    };
+    await this.webhookService.dispatch(payload);
+    if (targets && (targets.x || targets.facebook || targets.instagram)) {
+      await this.socialService.dispatch(payload, targets);
+    }
+  }
+
+  // Called by the scheduler tick endpoint (external cron on free tier).
+  // Publishes every article whose scheduled_at has arrived. NULL scheduled_at
+  // rows never match the <= comparison, so plain drafts are untouched.
+  async publishDue() {
+    const now = new Date();
+    const due = await this.repo.find({
+      where: { published: false, scheduled_at: LessThanOrEqual(now) },
+      relations: ['categories', 'locations'],
+    });
+    let published = 0;
+    for (const article of due) {
+      article.published = true;
+      // ponytail: scheduled social targets aren't persisted, so auto-publish
+      // fires the webhook only. Add post_to_* columns if per-article social
+      // on schedule is needed.
+      const saved = await this.repo.save(article);
+      try {
+        await this.dispatchPublish(saved);
+      } catch (err) {
+        this.logger.warn(
+          `scheduled publish dispatch failed for ${saved.id}: ${(err as Error).message}`,
+        );
+      }
+      published += 1;
+    }
+    if (published) this.logger.log(`Auto-published ${published} scheduled article(s)`);
+    return { published };
   }
 
   async list(query: ListArticlesDto) {
@@ -385,6 +431,19 @@ export class ArticlesService implements OnModuleInit {
       article.published_at = dto.published_at
         ? new Date(dto.published_at)
         : null;
+    }
+    if (dto.scheduled_at !== undefined) {
+      const state = resolvePublishState(
+        { scheduled_at: dto.scheduled_at, published: article.published },
+        Date.now(),
+      );
+      article.scheduled_at = state.scheduled_at;
+      if (state.scheduled_at) {
+        // Future schedule: hide until it fires, stamp the display date to match.
+        article.published = false;
+        article.published_at = state.published_at;
+      }
+      // Cleared or past schedule: leave published/published_at as set above.
     }
     if (dto.display_order !== undefined) {
       article.display_order = dto.display_order;
