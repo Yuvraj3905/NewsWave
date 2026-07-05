@@ -3,20 +3,34 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { clearToken, getToken } from './AdminAuth';
+import { clearToken, getToken, getRole } from './AdminAuth';
 import { api } from '@/lib/api';
+import { ManagerRole } from '@/lib/types';
 
-const NAV = [
+// roles = which roles see the item. undefined = everyone.
+const NAV: { href: string; label: string; roles?: ManagerRole[] }[] = [
   { href: '/admin/dashboard', label: 'Overview' },
   { href: '/admin/articles', label: 'Articles' },
   { href: '/admin/articles/new', label: 'New Article' },
-  { href: '/admin/subscribers', label: 'Subscribers' },
+  {
+    href: '/admin/subscribers',
+    label: 'Subscribers',
+    roles: ['superadmin', 'admin'],
+  },
+  { href: '/admin/users', label: 'Users', roles: ['superadmin'] },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [pendingCount, setPendingCount] = useState<number | null>(null);
+  const [role, setRole] = useState<ManagerRole | null>(null);
+
+  useEffect(() => {
+    setRole(getRole());
+  }, []);
+
+  const nav = NAV.filter((n) => !n.roles || (role && n.roles.includes(role)));
 
   function logout() {
     clearToken();
@@ -38,7 +52,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     };
   }, [pathname]);
 
-  const bestMatch = NAV.map((n) => n.href)
+  const bestMatch = nav
+    .map((n) => n.href)
     .filter((h) => pathname === h || pathname.startsWith(h + '/'))
     .sort((a, b) => b.length - a.length)[0];
 
@@ -50,7 +65,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             Manager
           </div>
           <nav className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible -mx-1 px-1 md:mx-0 md:px-0">
-            {NAV.map((item) => {
+            {nav.map((item) => {
               const active = item.href === bestMatch;
               const isSubs = item.href === '/admin/subscribers';
               const showBadge =
