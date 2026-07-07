@@ -1,6 +1,36 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 
+export interface WatermarkOverlay {
+  overlay: string;
+  gravity: string;
+  width: number;
+  opacity: number;
+  flags: string;
+  x: number;
+  y: number;
+}
+
+// Pure: builds the Cloudinary overlay transform from env, or null if disabled.
+// Kept standalone so it can be unit-checked without a Cloudinary connection.
+export function buildWatermarkOverlay(
+  env: Record<string, string | undefined>,
+): WatermarkOverlay | null {
+  const logo = env.WATERMARK_LOGO;
+  if (!logo) return null;
+  const margin = Number(env.WATERMARK_MARGIN) || 10;
+  return {
+    // Cloudinary overlays reference folders with ':' not '/'.
+    overlay: logo.replace(/\//g, ':'),
+    gravity: env.WATERMARK_GRAVITY || 'north_east',
+    width: Number(env.WATERMARK_WIDTH) || 0.15,
+    opacity: Number(env.WATERMARK_OPACITY) || 70,
+    flags: 'relative',
+    x: margin,
+    y: margin,
+  };
+}
+
 @Injectable()
 export class MediaService {
   private readonly logger = new Logger(MediaService.name);
@@ -39,10 +69,39 @@ export class MediaService {
         },
         (err, result) => {
           if (err || !result) return reject(err);
-          resolve(result.secure_url);
+          // Original is stored untouched; the watermark is a delivery
+          // transform, so it can be changed/removed later without re-upload.
+          const overlay = buildWatermarkOverlay(process.env);
+          if (!overlay) return resolve(result.secure_url);
+          resolve(
+            cloudinary.url(result.public_id, {
+              transformation: [overlay],
+              secure: true,
+              version: result.version,
+              resource_type: 'image',
+            }),
+          );
         },
       );
       upload.end(buffer);
     });
+  }
+
+  // Watermarks a remote image URL (hero-by-URL, gallery-by-URL) via Cloudinary's
+  // fetch delivery. Returns the URL unchanged if watermarking is off/unconfigured.
+  watermarkUrl(url: string): string {
+    if (!this.configured || !url) return url;
+    const overlay = buildWatermarkOverlay(process.env);
+    if (!overlay) return url;
+    try {
+      return cloudinary.url(url, {
+        type: 'fetch',
+        transformation: [overlay],
+        secure: true,
+      });
+    } catch (err) {
+      this.logger.warn(`watermarkUrl failed: ${(err as Error).message}`);
+      return url;
+    }
   }
 }
