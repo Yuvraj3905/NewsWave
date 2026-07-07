@@ -99,6 +99,36 @@ export class CreateArticleDto {
   })
   display_order?: number | null;
 
+  @ApiPropertyOptional({
+    description:
+      'Custom URL slug. Auto-generated from the title when omitted. Editing on an existing article changes its public URL.',
+  })
+  @IsOptional()
+  @IsString()
+  slug?: string;
+
+  @ApiPropertyOptional({ description: 'SEO title tag override (falls back to title).' })
+  @IsOptional()
+  @IsString()
+  meta_title?: string;
+
+  @ApiPropertyOptional({
+    description: 'SEO meta description override (falls back to description).',
+  })
+  @IsOptional()
+  @IsString()
+  meta_description?: string;
+
+  @ApiPropertyOptional({ description: 'Focus keyword for on-page SEO checks.' })
+  @IsOptional()
+  @IsString()
+  focus_keyword?: string;
+
+  @ApiPropertyOptional({ description: 'Canonical URL override.' })
+  @IsOptional()
+  @IsString()
+  canonical_url?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()

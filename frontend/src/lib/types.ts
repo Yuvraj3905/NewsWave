@@ -45,6 +45,10 @@ export interface Article {
   published: boolean;
   published_at?: string | null;
   display_order?: number | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  focus_keyword?: string | null;
+  canonical_url?: string | null;
   categories: Category[];
   locations: Location[];
   translations?: ArticleTranslation[];
