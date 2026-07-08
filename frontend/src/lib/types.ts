@@ -83,3 +83,22 @@ export interface SubscriberCounts {
   rejected: number;
   count: number;
 }
+
+export type AdSlot = 'home_banner' | 'sidebar' | 'in_article';
+export type AdType = 'image' | 'html';
+
+export interface Ad {
+  id: string;
+  name: string;
+  slot: AdSlot;
+  type: AdType;
+  image_url?: string | null;
+  target_url?: string | null;
+  html?: string | null;
+  active: boolean;
+  priority: number;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}

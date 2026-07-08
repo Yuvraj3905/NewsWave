@@ -5,12 +5,14 @@ import { NewsletterCard } from '@/components/NewsletterCard';
 import { ExploreMore } from '@/components/ExploreMore';
 import { BreakingTicker } from '@/components/BreakingTicker';
 import { StickyBottomAside } from '@/components/StickyBottomAside';
+import { AdSlot } from '@/components/AdSlot';
 
 export default function HomePage() {
   return (
     <>
       <BreakingTicker />
       <div className="max-w-7xl mx-auto px-4 py-6 lg:py-8">
+        <AdSlot slot="home_banner" className="mb-6" />
         <div className="grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="space-y-6">
             <div>
@@ -25,6 +27,7 @@ export default function HomePage() {
           </div>
 
           <StickyBottomAside>
+            <AdSlot slot="sidebar" />
             <LatestSidebar />
             <TrendingNow />
             <NewsletterCard />

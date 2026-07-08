@@ -10,12 +10,14 @@ import { ManagersModule } from './managers/managers.module';
 import { MediaModule } from './media/media.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { SocialModule } from './social/social.module';
+import { AdsModule } from './ads/ads.module';
 import { HealthController } from './health.controller';
 import { Article } from './articles/article.entity';
 import { Category } from './categories/category.entity';
 import { Location } from './locations/location.entity';
 import { Subscriber } from './subscribers/subscriber.entity';
 import { Manager } from './managers/manager.entity';
+import { Ad } from './ads/ad.entity';
 
 @Module({
   imports: [
@@ -27,7 +29,7 @@ import { Manager } from './managers/manager.entity';
         process.env.DATABASE_SSL === 'true'
           ? { rejectUnauthorized: false }
           : false,
-      entities: [Article, Category, Location, Subscriber, Manager],
+      entities: [Article, Category, Location, Subscriber, Manager, Ad],
       synchronize: process.env.DATABASE_SYNCHRONIZE
         ? process.env.DATABASE_SYNCHRONIZE === 'true'
         : process.env.NODE_ENV !== 'production',
@@ -42,6 +44,7 @@ import { Manager } from './managers/manager.entity';
     MediaModule,
     WebhookModule,
     SocialModule,
+    AdsModule,
   ],
   controllers: [HealthController],
 })

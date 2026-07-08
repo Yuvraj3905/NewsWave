@@ -2,6 +2,8 @@ import {
   Article,
   ArticleImage,
   ArticleListResponse,
+  Ad,
+  AdSlot,
   ArticleTranslation,
   AuthResponse,
   Category,
@@ -79,6 +81,7 @@ export const api = {
     request<Article[]>(`/articles/slug/${slug}/related`, { query: { lang } }),
   listCategories: () => request<Category[]>('/categories'),
   listLocations: () => request<Location[]>('/locations'),
+  listAds: (slot: AdSlot) => request<Ad[]>('/ads', { query: { slot } }),
   listArticleImages: (id: string) =>
     request<ArticleImage[]>(`/articles/${id}/images`),
   subscribe: (email: string, name?: string) =>
@@ -217,4 +220,21 @@ export const api = {
       method: 'DELETE',
       token,
     }),
+
+  // Ads (manager)
+  adminListAds: (token: string) => request<Ad[]>('/ads/admin', { token }),
+  adminCreateAd: (token: string, payload: Partial<Ad>) =>
+    request<Ad>('/ads', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      token,
+    }),
+  adminUpdateAd: (token: string, id: string, payload: Partial<Ad>) =>
+    request<Ad>(`/ads/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+      token,
+    }),
+  adminDeleteAd: (token: string, id: string) =>
+    request<void>(`/ads/${id}`, { method: 'DELETE', token }),
 };

@@ -11,6 +11,7 @@ import { LatestSidebar } from '@/components/LatestSidebar';
 import { ArticleCard } from '@/components/ArticleCard';
 import { ShareButtons } from '@/components/ShareButtons';
 import { Gallery } from '@/components/Gallery';
+import { AdSlot } from '@/components/AdSlot';
 import { Language } from '@/lib/types';
 
 const getArticle = cache((slug: string, lang: Language) =>
@@ -167,6 +168,8 @@ export default async function ArticlePage({ params }: PageProps) {
 
             <ShareButtons title={article.title} slug={article.slug} />
 
+            <AdSlot slot="in_article" className="my-6" />
+
             {gallery.length > 0 && (
               <Gallery images={gallery} title={article.title} />
             )}
@@ -197,6 +200,7 @@ export default async function ArticlePage({ params }: PageProps) {
         </article>
 
         <aside className="space-y-5">
+          <AdSlot slot="sidebar" />
           <LatestSidebar />
         </aside>
       </div>
