@@ -58,9 +58,18 @@ export interface ArticleListResponse {
   total: number;
 }
 
+export type ManagerRole = 'superadmin' | 'admin' | 'editor';
+
+export interface Manager {
+  id: string;
+  username: string;
+  role: ManagerRole;
+  created_at: string;
+}
+
 export interface AuthResponse {
   access_token: string;
-  manager: { id: string; username: string; role: string };
+  manager: { id: string; username: string; role: ManagerRole };
 }
 
 export type SubscriberStatus = 'pending' | 'approved' | 'rejected';
