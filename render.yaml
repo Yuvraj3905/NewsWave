@@ -33,6 +33,18 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+      # Watermark: set WATERMARK_LOGO to the Cloudinary public_id of the logo
+      # (e.g. newswave/logo). Leave unset to disable watermarking.
+      - key: WATERMARK_LOGO
+        sync: false
+      - key: WATERMARK_GRAVITY
+        value: north_east
+      - key: WATERMARK_WIDTH
+        value: "0.15"
+      - key: WATERMARK_OPACITY
+        value: "70"
+      - key: WATERMARK_MARGIN
+        value: "10"
       - key: SOCIAL_WEBHOOK_URL
         sync: false
       - key: PUBLIC_SITE_URL
