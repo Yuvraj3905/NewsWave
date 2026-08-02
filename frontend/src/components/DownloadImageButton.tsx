@@ -1,3 +1,5 @@
+'use client';
+
 import { buildDownloadUrl } from '@/lib/watermark';
 
 // Separate from the on-page corner badge: gives a big-centered-watermark copy

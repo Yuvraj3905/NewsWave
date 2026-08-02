@@ -151,7 +151,6 @@ export default async function ArticlePage({ params }: PageProps) {
                 priority
                 sizes="(min-width: 1024px) 1024px, 100vw"
                 className="object-cover"
-                onContextMenu={(e) => e.preventDefault()}
               />
               <WatermarkBadge className="w-24" />
               <DownloadImageButton
