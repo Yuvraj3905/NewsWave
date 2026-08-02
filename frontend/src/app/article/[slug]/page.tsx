@@ -11,9 +11,6 @@ import { LatestSidebar } from '@/components/LatestSidebar';
 import { ArticleCard } from '@/components/ArticleCard';
 import { ShareButtons } from '@/components/ShareButtons';
 import { Gallery } from '@/components/Gallery';
-import { WatermarkBadge } from '@/components/WatermarkBadge';
-import { DownloadImageButton } from '@/components/DownloadImageButton';
-import { stripWatermark } from '@/lib/watermark';
 import { Language } from '@/lib/types';
 
 const getArticle = cache((slug: string, lang: Language) =>
@@ -145,17 +142,12 @@ export default async function ArticlePage({ params }: PageProps) {
           {article.image_url && (
             <div className="relative w-full aspect-[16/9] max-h-[480px] bg-surface-100 dark:bg-navy-700">
               <Image
-                src={stripWatermark(article.image_url)}
+                src={article.image_url}
                 alt={article.title}
                 fill
                 priority
                 sizes="(min-width: 1024px) 1024px, 100vw"
                 className="object-cover"
-              />
-              <WatermarkBadge className="w-24" />
-              <DownloadImageButton
-                imageUrl={article.image_url}
-                className="absolute bottom-3 right-3"
               />
             </div>
           )}

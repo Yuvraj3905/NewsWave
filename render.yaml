@@ -38,11 +38,11 @@ services:
       - key: WATERMARK_LOGO
         sync: false
       - key: WATERMARK_GRAVITY
-        value: north_east
+        value: center
       - key: WATERMARK_WIDTH
-        value: "0.15"
+        value: "0.3"
       - key: WATERMARK_OPACITY
-        value: "70"
+        value: "40"
       - key: WATERMARK_MARGIN
         value: "10"
       - key: SOCIAL_WEBHOOK_URL

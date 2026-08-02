@@ -9,10 +9,11 @@ assert.equal(buildWatermarkOverlay({}), null, 'no logo => null (watermark off)')
 const d = buildWatermarkOverlay({ WATERMARK_LOGO: 'newswave/logo' });
 assert.ok(d, 'logo set => overlay object');
 assert.equal(d!.overlay, 'newswave:logo', 'folder slash becomes colon');
-assert.equal(d!.gravity, 'north_east');
-assert.equal(d!.width, 0.15);
-assert.equal(d!.opacity, 70);
-assert.equal(d!.x, 10);
+assert.equal(d!.gravity, 'center');
+assert.equal(d!.width, 0.3);
+assert.equal(d!.opacity, 40);
+assert.equal(d!.x, 0, 'center gravity => no offset');
+assert.equal(d!.y, 0);
 
 // Env overrides
 const c = buildWatermarkOverlay({
