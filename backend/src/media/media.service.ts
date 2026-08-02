@@ -18,16 +18,21 @@ export function buildWatermarkOverlay(
 ): WatermarkOverlay | null {
   const logo = env.WATERMARK_LOGO;
   if (!logo) return null;
+  const gravity = env.WATERMARK_GRAVITY || 'center';
+  // Corner gravities (north_east etc.) get cropped inconsistently by frontend
+  // object-cover boxes since crop amount varies with each image's own aspect
+  // ratio. Center gravity survives any center-crop unchanged, so it stays put
+  // on-page AND on direct download/save alike. Margin only makes sense off-center.
   const margin = Number(env.WATERMARK_MARGIN) || 10;
   return {
     // Cloudinary overlays reference folders with ':' not '/'.
     overlay: logo.replace(/\//g, ':'),
-    gravity: env.WATERMARK_GRAVITY || 'north_east',
-    width: Number(env.WATERMARK_WIDTH) || 0.15,
-    opacity: Number(env.WATERMARK_OPACITY) || 70,
+    gravity,
+    width: Number(env.WATERMARK_WIDTH) || 0.3,
+    opacity: Number(env.WATERMARK_OPACITY) || 40,
     flags: 'relative',
-    x: margin,
-    y: margin,
+    x: gravity === 'center' ? 0 : margin,
+    y: gravity === 'center' ? 0 : margin,
   };
 }
 

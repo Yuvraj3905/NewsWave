@@ -2,8 +2,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Article } from '@/lib/types';
 import { formatIST } from '@/lib/format';
-import { stripWatermark } from '@/lib/watermark';
-import { WatermarkBadge } from './WatermarkBadge';
 
 const FALLBACK_IMG =
   'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=800&auto=format&fit=crop&q=60';
@@ -18,7 +16,7 @@ export function ArticleCard({
   priority?: boolean;
 }) {
   const isFeature = variant === 'feature';
-  const src = article.image_url ? stripWatermark(article.image_url) : FALLBACK_IMG;
+  const src = article.image_url || FALLBACK_IMG;
   const sizes = isFeature
     ? '(min-width: 1024px) 60vw, 100vw'
     : '(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw';
@@ -44,7 +42,6 @@ export function ArticleCard({
             loading={priority ? undefined : 'lazy'}
             className="object-cover group-hover:scale-[1.03] transition duration-500"
           />
-          {article.image_url && <WatermarkBadge className={isFeature ? 'w-20' : 'w-14'} />}
           {article.categories?.[0] && (
             <span className="absolute top-3 left-3 bg-brand-500 text-white text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded">
               {article.categories[0].name}
