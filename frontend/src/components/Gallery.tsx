@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import { ArticleImage } from '@/lib/types';
+import { stripWatermark } from '@/lib/watermark';
+import { WatermarkBadge } from './WatermarkBadge';
 
 interface Props {
   images: ArticleImage[];
@@ -54,13 +56,14 @@ export function Gallery({ images, title }: Props) {
             className="block relative overflow-hidden rounded-lg border border-navy-100 hover:shadow-card transition h-44 bg-surface-100 dark:bg-navy-700 cursor-zoom-in"
           >
             <Image
-              src={img.url}
+              src={stripWatermark(img.url)}
               alt={img.alt || title}
               fill
               loading="lazy"
               sizes="(min-width: 768px) 30vw, 50vw"
               className="object-cover"
             />
+            <WatermarkBadge className="w-12" />
             {img.alt && (
               <span className="absolute inset-x-0 bottom-0 bg-black/55 text-white text-xs px-2 py-1 text-left">
                 {img.alt}
