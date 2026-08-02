@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ArticleImage } from '@/lib/types';
 import { stripWatermark } from '@/lib/watermark';
 import { WatermarkBadge } from './WatermarkBadge';
+import { DownloadImageButton } from './DownloadImageButton';
 
 interface Props {
   images: ArticleImage[];
@@ -62,6 +63,7 @@ export function Gallery({ images, title }: Props) {
               loading="lazy"
               sizes="(min-width: 768px) 30vw, 50vw"
               className="object-cover"
+              onContextMenu={(e) => e.preventDefault()}
             />
             <WatermarkBadge className="w-12" />
             {img.alt && (
@@ -126,6 +128,11 @@ export function Gallery({ images, title }: Props) {
                 fill
                 sizes="100vw"
                 className="object-contain"
+                onContextMenu={(e) => e.preventDefault()}
+              />
+              <DownloadImageButton
+                imageUrl={active.url}
+                className="absolute bottom-3 right-3"
               />
             </div>
             {active.alt && (
