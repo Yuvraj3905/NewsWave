@@ -12,6 +12,7 @@ import { ArticleCard } from '@/components/ArticleCard';
 import { ShareButtons } from '@/components/ShareButtons';
 import { Gallery } from '@/components/Gallery';
 import { WatermarkBadge } from '@/components/WatermarkBadge';
+import { DownloadImageButton } from '@/components/DownloadImageButton';
 import { stripWatermark } from '@/lib/watermark';
 import { Language } from '@/lib/types';
 
@@ -150,8 +151,13 @@ export default async function ArticlePage({ params }: PageProps) {
                 priority
                 sizes="(min-width: 1024px) 1024px, 100vw"
                 className="object-cover"
+                onContextMenu={(e) => e.preventDefault()}
               />
               <WatermarkBadge className="w-24" />
+              <DownloadImageButton
+                imageUrl={article.image_url}
+                className="absolute bottom-3 right-3"
+              />
             </div>
           )}
 
