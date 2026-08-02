@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { Article } from '@/lib/types';
 import { api } from '@/lib/api';
+import { stripWatermark } from '@/lib/watermark';
 import { formatTimeShort } from '@/lib/format';
 import { useLanguage } from './LanguageContext';
 
@@ -59,7 +60,7 @@ export function LatestSidebar() {
                 </span>
                 <div className="relative w-12 h-12 rounded overflow-hidden shrink-0 bg-surface-100 dark:bg-navy-700">
                   <Image
-                    src={a.image_url || FALLBACK_IMG}
+                    src={a.image_url ? stripWatermark(a.image_url) : FALLBACK_IMG}
                     alt=""
                     fill
                     sizes="48px"
