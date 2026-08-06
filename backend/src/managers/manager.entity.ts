@@ -6,7 +6,8 @@ import {
   Index,
 } from 'typeorm';
 
-export type ManagerRole = 'admin' | 'editor';
+export type ManagerRole = 'superadmin' | 'admin' | 'editor';
+export const MANAGER_ROLES: ManagerRole[] = ['superadmin', 'admin', 'editor'];
 
 @Entity('managers')
 export class Manager {

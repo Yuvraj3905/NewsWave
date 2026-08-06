@@ -37,6 +37,12 @@ const slugify = (text: string) => {
   return base.slice(0, 200);
 };
 
+// Trim and coerce blank SEO inputs to null so we store clean nulls, not ''.
+const emptyToNull = (v?: string | null): string | null => {
+  const t = (v ?? '').trim();
+  return t === '' ? null : t;
+};
+
 const publicViews = (id: string): number => {
   let h = 0;
   for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) | 0;
@@ -143,10 +149,10 @@ export class ArticlesService implements OnModuleInit {
       );
       if (uploaded) imageUrl = uploaded;
     } else if (dto.image_url?.trim()) {
-      imageUrl = dto.image_url.trim();
+      imageUrl = this.mediaService.watermarkUrl(dto.image_url.trim());
     }
 
-    const slug = await this.generateUniqueSlug(dto.title);
+    const slug = await this.generateUniqueSlug(dto.slug?.trim() || dto.title);
     const categories = dto.category_ids?.length
       ? await this.categoriesService.findByIds(dto.category_ids)
       : [];
@@ -173,6 +179,10 @@ export class ArticlesService implements OnModuleInit {
       scheduled_at: state.scheduled_at,
       display_order:
         dto.display_order === undefined ? null : dto.display_order,
+      meta_title: emptyToNull(dto.meta_title),
+      meta_description: emptyToNull(dto.meta_description),
+      focus_keyword: emptyToNull(dto.focus_keyword),
+      canonical_url: emptyToNull(dto.canonical_url),
       categories,
       locations,
     });
@@ -419,9 +429,27 @@ export class ArticlesService implements OnModuleInit {
   ): Promise<Article> {
     const article = await this.findById(id);
 
-    if (dto.title && dto.title !== article.title) {
+    // Explicit slug edit wins; otherwise regenerate from a changed title.
+    if (dto.slug?.trim()) {
+      article.slug = await this.generateUniqueSlug(dto.slug.trim(), id);
+      if (dto.title) article.title = dto.title;
+    } else if (dto.title && dto.title !== article.title) {
       article.title = dto.title;
       article.slug = await this.generateUniqueSlug(dto.title, id);
+    } else if (dto.title) {
+      article.title = dto.title;
+    }
+    if (dto.meta_title !== undefined) {
+      article.meta_title = emptyToNull(dto.meta_title);
+    }
+    if (dto.meta_description !== undefined) {
+      article.meta_description = emptyToNull(dto.meta_description);
+    }
+    if (dto.focus_keyword !== undefined) {
+      article.focus_keyword = emptyToNull(dto.focus_keyword);
+    }
+    if (dto.canonical_url !== undefined) {
+      article.canonical_url = emptyToNull(dto.canonical_url);
     }
     if (dto.description !== undefined) article.description = dto.description;
     if (dto.content !== undefined) article.content = dto.content;
@@ -467,7 +495,7 @@ export class ArticlesService implements OnModuleInit {
       );
       if (uploaded) article.image_url = uploaded;
     } else if (dto.image_url?.trim()) {
-      article.image_url = dto.image_url.trim();
+      article.image_url = this.mediaService.watermarkUrl(dto.image_url.trim());
     }
 
     return this.repo.save(article);
@@ -663,7 +691,7 @@ export class ArticlesService implements OnModuleInit {
     });
     const img = this.imageRepo.create({
       article_id: articleId,
-      url,
+      url: this.mediaService.watermarkUrl(url),
       alt,
       position: existing,
     });

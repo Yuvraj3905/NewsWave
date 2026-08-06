@@ -46,6 +46,10 @@ export interface Article {
   published_at?: string | null;
   scheduled_at?: string | null;
   display_order?: number | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  focus_keyword?: string | null;
+  canonical_url?: string | null;
   categories: Category[];
   locations: Location[];
   translations?: ArticleTranslation[];
@@ -59,9 +63,18 @@ export interface ArticleListResponse {
   total: number;
 }
 
+export type ManagerRole = 'superadmin' | 'admin' | 'editor';
+
+export interface Manager {
+  id: string;
+  username: string;
+  role: ManagerRole;
+  created_at: string;
+}
+
 export interface AuthResponse {
   access_token: string;
-  manager: { id: string; username: string; role: string };
+  manager: { id: string; username: string; role: ManagerRole };
 }
 
 export type SubscriberStatus = 'pending' | 'approved' | 'rejected';

@@ -4,8 +4,11 @@ import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AdminShell } from '@/components/AdminShell';
-import { getToken, useRequireAuth } from '@/components/AdminAuth';
+import { getToken, getRole, useRequireAuth } from '@/components/AdminAuth';
 import { api } from '@/lib/api';
+import { ManagerRole } from '@/lib/types';
+
+const SUBSCRIBER_ROLES: ManagerRole[] = ['superadmin', 'admin'];
 
 const AnalyticsCharts = dynamic(
   () =>
@@ -31,18 +34,30 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [subCount, setSubCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState<ManagerRole | null>(null);
+  const canSeeSubscribers = !!role && SUBSCRIBER_ROLES.includes(role);
 
   useEffect(() => {
-    if (!ready) return;
+    setRole(getRole());
+  }, []);
+
+  useEffect(() => {
+    if (!ready || role === null) return;
     const token = getToken();
     if (!token) return;
-    Promise.all([api.adminStats(token), api.adminSubscriberCount(token)])
-      .then(([s, c]) => {
-        setStats(s);
-        setSubCount(c.count);
-      })
+    // Independent fetches: a widget the role can't access is simply skipped,
+    // never surfaced as an error.
+    api
+      .adminStats(token)
+      .then(setStats)
       .catch((err) => setError(err?.message || 'Failed to load stats'));
-  }, [ready]);
+    if (canSeeSubscribers) {
+      api
+        .adminSubscriberCount(token)
+        .then((c) => setSubCount(c.count))
+        .catch(() => {});
+    }
+  }, [ready, role, canSeeSubscribers]);
 
   if (!ready) return null;
 
@@ -65,7 +80,9 @@ export default function DashboardPage() {
           value={stats?.published_articles ?? '-'}
         />
         <StatCard label="Total Views" value={stats?.total_views ?? '-'} />
-        <StatCard label="Active Subscribers" value={subCount ?? '-'} />
+        {canSeeSubscribers && (
+          <StatCard label="Active Subscribers" value={subCount ?? '-'} />
+        )}
       </div>
 
       <div className="mt-6 sm:mt-8">
@@ -88,12 +105,14 @@ export default function DashboardPage() {
           >
             Manage Articles
           </Link>
-          <Link
-            href="/admin/subscribers"
-            className="bg-white border border-ink-300 text-ink-700 hover:bg-surface-100 px-3 py-1.5 rounded font-semibold"
-          >
-            View Subscribers
-          </Link>
+          {canSeeSubscribers && (
+            <Link
+              href="/admin/subscribers"
+              className="bg-white border border-ink-300 text-ink-700 hover:bg-surface-100 px-3 py-1.5 rounded font-semibold"
+            >
+              View Subscribers
+            </Link>
+          )}
         </div>
       </div>
 

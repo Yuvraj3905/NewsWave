@@ -16,6 +16,18 @@ const EMPTY_LC: LangContent = { title: '', description: '', content: '' };
 // National/International are categories, not locations — keep them out of the
 // location selector even if legacy location rows still exist in the DB.
 const HIDDEN_LOCATION_SLUGS = new Set(['national', 'international']);
+
+// Preview-only slugify. Mirrors the backend rules loosely (keeps Hindi/Punjabi
+// ranges); the server is the source of truth for the final slug.
+function clientSlugify(text: string): string {
+  return (text || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\sऀ-ॿ਀-੿-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 200);
+}
 const TABS: { key: Language; label: string; required: boolean }[] = [
   { key: 'en', label: 'English', required: true },
   { key: 'hi', label: 'हिन्दी (Hindi)', required: false },
@@ -67,6 +79,15 @@ export function ArticleForm({ initial }: Props) {
   const [locationIds, setLocationIds] = useState<string[]>(
     initial?.locations?.map((l) => l.id) || [],
   );
+
+  // SEO
+  const [slug, setSlug] = useState(initial?.slug || '');
+  const [metaTitle, setMetaTitle] = useState(initial?.meta_title || '');
+  const [metaDescription, setMetaDescription] = useState(
+    initial?.meta_description || '',
+  );
+  const [focusKeyword, setFocusKeyword] = useState(initial?.focus_keyword || '');
+  const [canonicalUrl, setCanonicalUrl] = useState(initial?.canonical_url || '');
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -199,6 +220,11 @@ export function ArticleForm({ initial }: Props) {
       } else if (isEdit && initial?.scheduled_at) {
         fd.append('scheduled_at', ''); // clear an existing schedule
       }
+      if (slug.trim()) fd.append('slug', slug.trim());
+      fd.append('meta_title', metaTitle);
+      fd.append('meta_description', metaDescription);
+      fd.append('focus_keyword', focusKeyword);
+      fd.append('canonical_url', canonicalUrl);
       categoryIds.forEach((id) => fd.append('category_ids', id));
       locationIds.forEach((id) => fd.append('location_ids', id));
       if (!isEdit) {
@@ -467,6 +493,126 @@ export function ArticleForm({ initial }: Props) {
           </div>
         </div>
       )}
+
+      <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3 sm:p-6 space-y-4">
+        <h3 className="font-bold text-ink-900 text-sm">SEO</h3>
+
+        {/* Google-style live preview */}
+        {(() => {
+          const pTitle = metaTitle.trim() || byLang.en.title || 'Untitled article';
+          const pDesc =
+            metaDescription.trim() ||
+            byLang.en.description ||
+            'Add a meta description to control the snippet shown in search results.';
+          const pSlug =
+            (slug.trim() ? clientSlugify(slug) : clientSlugify(byLang.en.title)) ||
+            'article';
+          return (
+            <div className="border border-ink-300/40 rounded-lg p-3 bg-surface-50">
+              <div className="text-xs text-ink-500 mb-1">Search preview</div>
+              <div className="text-[13px] text-green-700 truncate">
+                newswave.example › article › {pSlug}
+              </div>
+              <div className="text-[#1a0dab] text-lg leading-tight truncate">
+                {pTitle}
+              </div>
+              <div className="text-[13px] text-ink-700 line-clamp-2">{pDesc}</div>
+            </div>
+          );
+        })()}
+
+        <div>
+          <label className="block text-sm font-medium text-ink-700 mb-1">
+            URL Slug
+          </label>
+          <input
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            placeholder={clientSlugify(byLang.en.title) || 'auto-generated-from-title'}
+            className="w-full border border-ink-300 rounded px-3 py-2 text-sm"
+          />
+          <p className="text-[11px] text-ink-500 mt-1">
+            Leave blank to auto-generate from the title.
+            {isEdit && ' Changing this changes the public URL of an existing article.'}
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-ink-700 mb-1">
+            Meta Title{' '}
+            <span className="text-ink-500 font-normal">({metaTitle.length}/60)</span>
+          </label>
+          <input
+            value={metaTitle}
+            onChange={(e) => setMetaTitle(e.target.value)}
+            placeholder="Falls back to the article title"
+            className="w-full border border-ink-300 rounded px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-ink-700 mb-1">
+            Meta Description{' '}
+            <span className="text-ink-500 font-normal">
+              ({metaDescription.length}/160)
+            </span>
+          </label>
+          <textarea
+            rows={2}
+            value={metaDescription}
+            onChange={(e) => setMetaDescription(e.target.value)}
+            placeholder="Falls back to the short description"
+            className="w-full border border-ink-300 rounded px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-ink-700 mb-1">
+              Focus Keyword
+            </label>
+            <input
+              value={focusKeyword}
+              onChange={(e) => setFocusKeyword(e.target.value)}
+              className="w-full border border-ink-300 rounded px-3 py-2 text-sm"
+            />
+            {focusKeyword.trim() && (
+              <p className="text-[11px] mt-1">
+                {[
+                  byLang.en.title,
+                  metaTitle,
+                  byLang.en.description,
+                  metaDescription,
+                  byLang.en.content,
+                ]
+                  .join(' ')
+                  .toLowerCase()
+                  .includes(focusKeyword.trim().toLowerCase()) ? (
+                  <span className="text-green-700">
+                    ✓ Keyword found in title/description/content
+                  </span>
+                ) : (
+                  <span className="text-amber-700">
+                    ⚠ Keyword not found in title, description, or content
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-ink-700 mb-1">
+              Canonical URL
+            </label>
+            <input
+              type="url"
+              value={canonicalUrl}
+              onChange={(e) => setCanonicalUrl(e.target.value)}
+              placeholder="Leave blank for the default article URL"
+              className="w-full border border-ink-300 rounded px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white border border-ink-300/40 rounded-lg shadow-card p-3 sm:p-6">
         <label className="block text-sm font-medium text-ink-700 mb-2">
