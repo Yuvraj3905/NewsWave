@@ -44,6 +44,7 @@ export interface Article {
   views: number;
   published: boolean;
   published_at?: string | null;
+  scheduled_at?: string | null;
   display_order?: number | null;
   meta_title?: string | null;
   meta_description?: string | null;

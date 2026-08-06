@@ -3,10 +3,12 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
   Patch,
   Post,
   Query,
+  UnauthorizedException,
   UploadedFile,
   UploadedFiles,
   UseGuards,
@@ -136,6 +138,19 @@ export class ArticlesController {
   @ApiOperation({ summary: 'Delete article (admin/superadmin)' })
   remove(@Param('id') id: string) {
     return this.service.remove(id);
+  }
+
+  @Post('scheduler/tick')
+  @ApiOperation({
+    summary:
+      'Publish all articles whose scheduled time has arrived. Call from an external cron every 1-5 min. Auth via x-scheduler-token header matching SCHEDULER_TOKEN env.',
+  })
+  tick(@Headers('x-scheduler-token') token?: string) {
+    const secret = process.env.SCHEDULER_TOKEN;
+    if (!secret || token !== secret) {
+      throw new UnauthorizedException('Invalid scheduler token');
+    }
+    return this.service.publishDue();
   }
 
   @Post('reorder')

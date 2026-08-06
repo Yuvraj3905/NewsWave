@@ -89,6 +89,15 @@ export class CreateArticleDto {
 
   @ApiPropertyOptional({
     description:
+      'Auto-publish date/time (ISO 8601). When set to a future time the article is saved as unpublished and goes live automatically at this time. Send an empty string to clear a schedule.',
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  @IsISO8601()
+  scheduled_at?: string | null;
+
+  @ApiPropertyOptional({
+    description:
       'Manual sort priority. Lower numbers appear first. NULL means default date-based ordering.',
   })
   @IsOptional()

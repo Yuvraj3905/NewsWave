@@ -58,13 +58,21 @@ export function ArticleForm({ initial }: Props) {
   const [postToFB, setPostToFB] = useState(false);
   const [postToIG, setPostToIG] = useState(false);
   const [published, setPublished] = useState(initial?.published ?? true);
-  const [publishedAt, setPublishedAt] = useState<string>(() => {
-    const iso = initial?.published_at || initial?.created_at;
+  const toLocalInput = (iso?: string | null) => {
     if (!iso) return '';
     const d = new Date(iso);
     const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
     return local.toISOString().slice(0, 16);
-  });
+  };
+  const [publishedAt, setPublishedAt] = useState<string>(() =>
+    toLocalInput(initial?.published_at || initial?.created_at),
+  );
+  const [scheduleEnabled, setScheduleEnabled] = useState(
+    Boolean(initial?.scheduled_at),
+  );
+  const [scheduledAt, setScheduledAt] = useState<string>(() =>
+    toLocalInput(initial?.scheduled_at),
+  );
   const [categoryIds, setCategoryIds] = useState<string[]>(
     initial?.categories?.map((c) => c.id) || [],
   );
@@ -186,6 +194,10 @@ export function ArticleForm({ initial }: Props) {
     e.preventDefault();
     const token = getToken();
     if (!token) return;
+    if (scheduleEnabled && !scheduledAt) {
+      setError('Pick a date and time to schedule, or turn off scheduling.');
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
@@ -196,10 +208,17 @@ export function ArticleForm({ initial }: Props) {
       fd.append('description', en.description);
       fd.append('content', en.content);
       fd.append('author', author);
-      fd.append('published', String(published));
+      // Scheduling overrides the publish flag — the backend keeps it hidden
+      // until the scheduled time, then flips it live.
+      fd.append('published', String(scheduleEnabled ? false : published));
       if (publishedAt) {
         const iso = new Date(publishedAt).toISOString();
         fd.append('published_at', iso);
+      }
+      if (scheduleEnabled && scheduledAt) {
+        fd.append('scheduled_at', new Date(scheduledAt).toISOString());
+      } else if (isEdit && initial?.scheduled_at) {
+        fd.append('scheduled_at', ''); // clear an existing schedule
       }
       if (slug.trim()) fd.append('slug', slug.trim());
       fd.append('meta_title', metaTitle);
@@ -386,16 +405,47 @@ export function ArticleForm({ initial }: Props) {
                 Used for display order and on the article page. Leave as-is to use the current time; set a back-date to surface a story under a specific timestamp.
               </p>
             </div>
-            <div className="md:col-span-2">
-              <label className="inline-flex items-center gap-2 text-sm">
+            <div className="md:col-span-2 space-y-3">
+              <label
+                className={`inline-flex items-center gap-2 text-sm ${
+                  scheduleEnabled ? 'opacity-50' : ''
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={published}
+                  disabled={scheduleEnabled}
                   onChange={(e) => setPublished(e.target.checked)}
                   className="w-4 h-4"
                 />
                 <span>Publish immediately</span>
               </label>
+
+              <div className="border-t border-ink-300/40 pt-3">
+                <label className="inline-flex items-center gap-2 text-sm font-medium text-ink-700">
+                  <input
+                    type="checkbox"
+                    checked={scheduleEnabled}
+                    onChange={(e) => setScheduleEnabled(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span>Schedule auto-publish for later</span>
+                </label>
+                {scheduleEnabled && (
+                  <div className="mt-2">
+                    <input
+                      type="datetime-local"
+                      value={scheduledAt}
+                      onChange={(e) => setScheduledAt(e.target.value)}
+                      className="w-full border border-ink-300 rounded px-3 py-2 text-sm"
+                    />
+                    <p className="text-[11px] text-ink-500 mt-1">
+                      Article stays hidden until this time, then goes live
+                      automatically. Times are in your local timezone.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
