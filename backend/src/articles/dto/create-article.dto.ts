@@ -5,6 +5,7 @@ import {
   IsISO8601,
   IsOptional,
   IsString,
+  MaxLength,
   MinLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
@@ -37,6 +38,7 @@ export class CreateArticleDto {
   @ApiProperty()
   @IsString()
   @MinLength(3)
+  @MaxLength(300)
   title: string;
 
   @ApiPropertyOptional()
@@ -119,6 +121,7 @@ export class CreateArticleDto {
   @ApiPropertyOptional({ description: 'SEO title tag override (falls back to title).' })
   @IsOptional()
   @IsString()
+  @MaxLength(300)
   meta_title?: string;
 
   @ApiPropertyOptional({
