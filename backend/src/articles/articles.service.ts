@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -26,6 +27,8 @@ import { LocationsService } from '../locations/locations.service';
 import { MediaService } from '../media/media.service';
 import { WebhookService } from '../webhook/webhook.service';
 import { SocialService } from '../social/social.service';
+
+const SCHEDULE_SWEEP_MS = Number(process.env.SCHEDULE_SWEEP_MS ?? 60_000);
 
 const slugify = (text: string) => {
   const base = text
@@ -67,8 +70,9 @@ const applyLang = (article: Article, lang: ArticleLanguage): Article => {
 };
 
 @Injectable()
-export class ArticlesService implements OnModuleInit {
+export class ArticlesService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(ArticlesService.name);
+  private sweepTimer?: NodeJS.Timeout;
 
   constructor(
     @InjectRepository(Article)
@@ -100,6 +104,36 @@ export class ArticlesService implements OnModuleInit {
     } catch (err) {
       this.logger.warn(
         `published_at backfill skipped: ${(err as Error).message}`,
+      );
+    }
+
+    // Render spins the instance down when idle, so any external cron hitting
+    // /scheduler/tick misses schedules that came due while we were asleep.
+    // Catch up on boot, then self-tick while we stay awake.
+    await this.runDueSweep('startup catch-up');
+    // ponytail: setInterval on a single instance. Move to a real scheduler
+    // (or keep the external cron as backup) if the API ever runs >1 replica —
+    // each replica would sweep, but publishDue is idempotent so it only
+    // costs duplicate webhook dispatches.
+    this.sweepTimer = setInterval(() => {
+      void this.runDueSweep('interval');
+    }, SCHEDULE_SWEEP_MS);
+    this.sweepTimer.unref();
+  }
+
+  onModuleDestroy() {
+    if (this.sweepTimer) clearInterval(this.sweepTimer);
+  }
+
+  private async runDueSweep(reason: string) {
+    try {
+      const { published } = await this.publishDue();
+      if (published) {
+        this.logger.log(`Scheduler sweep (${reason}) published ${published}`);
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Scheduler sweep (${reason}) failed: ${(err as Error).message}`,
       );
     }
   }
