@@ -99,9 +99,9 @@ export const api = {
 
   // Admin
   adminListArticles: (token: string, query?: Record<string, any>) =>
-    request<ArticleListResponse>('/articles', {
+    request<ArticleListResponse>('/articles/admin', {
       token,
-      query: { ...query, includeUnpublished: true },
+      query,
     }),
   adminCreateArticle: (token: string, formData: FormData) =>
     request<Article>('/articles', {

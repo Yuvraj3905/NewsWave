@@ -52,6 +52,17 @@ export class ArticlesController {
     return this.service.list(query);
   }
 
+  @Get('admin')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'List articles including drafts and scheduled (manager)',
+  })
+  listAdmin(@Query() query: ListArticlesDto) {
+    query.includeUnpublished = true;
+    return this.service.list(query);
+  }
+
   @Get('latest')
   @ApiOperation({ summary: 'Latest 10 article headings (public)' })
   @ApiQuery({ name: 'lang', enum: SUPPORTED_LANGUAGES, required: false })
