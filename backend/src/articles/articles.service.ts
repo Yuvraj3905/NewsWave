@@ -28,7 +28,10 @@ import { MediaService } from '../media/media.service';
 import { WebhookService } from '../webhook/webhook.service';
 import { SocialService } from '../social/social.service';
 
-const SCHEDULE_SWEEP_MS = Number(process.env.SCHEDULE_SWEEP_MS ?? 60_000);
+// ponytail: 15 min, deliberately above Neon's 5-min autosuspend so the DB
+// can scale to zero between sweeps. A 60s sweep keeps compute hot 24/7 and
+// burns the free compute-hour quota in about a week. Lower only on a paid DB.
+const SCHEDULE_SWEEP_MS = Number(process.env.SCHEDULE_SWEEP_MS ?? 900_000);
 
 const slugify = (text: string) => {
   const base = text
