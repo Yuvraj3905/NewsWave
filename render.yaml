@@ -45,6 +45,10 @@ services:
         value: "40"
       - key: WATERMARK_MARGIN
         value: "10"
+      # Scheduler sweep interval. Keep above the DB's autosuspend window
+      # (Neon: 5 min) so idle compute can scale to zero.
+      - key: SCHEDULE_SWEEP_MS
+        value: "900000"
       - key: SOCIAL_WEBHOOK_URL
         sync: false
       - key: PUBLIC_SITE_URL
