@@ -15,6 +15,8 @@ import { AdsService } from './ads.service';
 import { CreateAdDto, UpdateAdDto } from './dto/ad.dto';
 import { AD_SLOTS, AdSlot } from './ad.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @ApiTags('Ads')
 @Controller('ads')
@@ -33,7 +35,8 @@ export class AdsController {
 
   @Get('admin')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @ApiOperation({ summary: 'List all ads (manager)' })
   adminList() {
     return this.service.adminList();
@@ -41,7 +44,8 @@ export class AdsController {
 
   @Get(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @ApiOperation({ summary: 'Get ad by id (manager)' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
@@ -49,7 +53,8 @@ export class AdsController {
 
   @Post()
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @ApiOperation({ summary: 'Create ad (manager)' })
   create(@Body() dto: CreateAdDto) {
     return this.service.create(dto);
@@ -57,7 +62,8 @@ export class AdsController {
 
   @Patch(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @ApiOperation({ summary: 'Update ad (manager)' })
   update(@Param('id') id: string, @Body() dto: UpdateAdDto) {
     return this.service.update(id, dto);
@@ -65,7 +71,8 @@ export class AdsController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @ApiOperation({ summary: 'Delete ad (manager)' })
   remove(@Param('id') id: string) {
     return this.service.remove(id);
