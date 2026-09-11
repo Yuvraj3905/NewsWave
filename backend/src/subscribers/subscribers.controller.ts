@@ -18,6 +18,8 @@ import {
 import { SubscribersService } from './subscribers.service';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { SubscriberStatus } from './subscriber.entity';
 
 @ApiTags('Subscribers')
@@ -35,7 +37,8 @@ export class SubscribersController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @Get()
   @ApiQuery({
     name: 'status',
@@ -48,7 +51,8 @@ export class SubscribersController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @Get('count')
   @ApiOperation({
     summary: 'Subscriber counts by status (manager). count = approved.',
@@ -58,7 +62,8 @@ export class SubscribersController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @Patch(':id/approve')
   @ApiOperation({ summary: 'Approve subscriber (manager)' })
   approve(@Param('id') id: string) {
@@ -66,7 +71,8 @@ export class SubscribersController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @Patch(':id/reject')
   @ApiOperation({ summary: 'Reject subscriber (manager)' })
   reject(@Param('id') id: string) {
@@ -74,7 +80,8 @@ export class SubscribersController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @Patch(':id/revoke')
   @ApiOperation({
     summary: 'Revoke subscription (legacy; maps to reject) (manager)',
@@ -84,7 +91,8 @@ export class SubscribersController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @Delete(':id')
   @ApiOperation({ summary: 'Remove subscriber (manager)' })
   remove(@Param('id') id: string) {

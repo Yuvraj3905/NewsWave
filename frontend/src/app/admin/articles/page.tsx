@@ -454,6 +454,13 @@ export default function AdminArticlesPage() {
                       <span className="text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
                         Published
                       </span>
+                    ) : a.scheduled_at ? (
+                      <span
+                        className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full whitespace-nowrap"
+                        title={`Auto-publishes ${formatIST(a.scheduled_at)}`}
+                      >
+                        Scheduled · {formatIST(a.scheduled_at)}
+                      </span>
                     ) : (
                       <span className="text-xs font-semibold text-ink-500 bg-surface-100 px-2 py-0.5 rounded-full">
                         Draft
@@ -530,6 +537,10 @@ export default function AdminArticlesPage() {
                 {a.published ? (
                   <span className="shrink-0 text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
                     Published
+                  </span>
+                ) : a.scheduled_at ? (
+                  <span className="shrink-0 text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                    Scheduled
                   </span>
                 ) : (
                   <span className="shrink-0 text-[10px] font-semibold text-ink-500 bg-surface-100 px-2 py-0.5 rounded-full">

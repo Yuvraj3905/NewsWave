@@ -9,6 +9,8 @@ import {
   Category,
   Language,
   Location,
+  Manager,
+  ManagerRole,
   Subscriber,
   SubscriberCounts,
   SubscriberStatus,
@@ -100,9 +102,9 @@ export const api = {
 
   // Admin
   adminListArticles: (token: string, query?: Record<string, any>) =>
-    request<ArticleListResponse>('/articles', {
+    request<ArticleListResponse>('/articles/admin', {
       token,
-      query: { ...query, includeUnpublished: true },
+      query,
     }),
   adminCreateArticle: (token: string, formData: FormData) =>
     request<Article>('/articles', {
@@ -237,4 +239,29 @@ export const api = {
     }),
   adminDeleteAd: (token: string, id: string) =>
     request<void>(`/ads/${id}`, { method: 'DELETE', token }),
+
+  // Managers / RBAC (superadmin)
+  adminListManagers: (token: string) =>
+    request<Manager[]>('/managers', { token }),
+  adminCreateManager: (
+    token: string,
+    payload: { username: string; password: string; role: ManagerRole },
+  ) =>
+    request<Manager>('/managers', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      token,
+    }),
+  adminUpdateManager: (
+    token: string,
+    id: string,
+    payload: { role?: ManagerRole; password?: string },
+  ) =>
+    request<Manager>(`/managers/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+      token,
+    }),
+  adminDeleteManager: (token: string, id: string) =>
+    request<void>(`/managers/${id}`, { method: 'DELETE', token }),
 };

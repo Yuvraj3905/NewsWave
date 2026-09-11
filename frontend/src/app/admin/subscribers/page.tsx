@@ -27,7 +27,7 @@ const STATUS_PILL: Record<SubscriberStatus, string> = {
 };
 
 export default function SubscribersPage() {
-  const ready = useRequireAuth();
+  const ready = useRequireAuth(['superadmin', 'admin']);
   const [items, setItems] = useState<Subscriber[]>([]);
   const [counts, setCounts] = useState<SubscriberCounts | null>(null);
   const [tab, setTab] = useState<TabKey>('pending');

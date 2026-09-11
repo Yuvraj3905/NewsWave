@@ -3,10 +3,12 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
   Patch,
   Post,
   Query,
+  UnauthorizedException,
   UploadedFile,
   UploadedFiles,
   UseGuards,
@@ -34,6 +36,8 @@ import {
   UpsertTranslationDto,
 } from './dto/translation.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { ArticleLanguage } from './article-translation.entity';
 
 @ApiTags('Articles')
@@ -45,6 +49,17 @@ export class ArticlesController {
   @ApiOperation({ summary: 'List articles (public, supports ?lang=en|hi|pa)' })
   list(@Query() query: ListArticlesDto) {
     query.includeUnpublished = false;
+    return this.service.list(query);
+  }
+
+  @Get('admin')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'List articles including drafts and scheduled (manager)',
+  })
+  listAdmin(@Query() query: ListArticlesDto) {
+    query.includeUnpublished = true;
     return this.service.list(query);
   }
 
@@ -129,17 +144,33 @@ export class ArticlesController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Delete article (manager)' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
+  @ApiOperation({ summary: 'Delete article (admin/superadmin)' })
   remove(@Param('id') id: string) {
     return this.service.remove(id);
   }
 
+  @Post('scheduler/tick')
+  @ApiOperation({
+    summary:
+      'Publish all articles whose scheduled time has arrived. Call from an external cron every 1-5 min. Auth via x-scheduler-token header matching SCHEDULER_TOKEN env.',
+  })
+  tick(@Headers('x-scheduler-token') token?: string) {
+    const secret = process.env.SCHEDULER_TOKEN;
+    if (!secret || token !== secret) {
+      throw new UnauthorizedException('Invalid scheduler token');
+    }
+    return this.service.publishDue();
+  }
+
   @Post('reorder')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('superadmin', 'admin')
   @ApiOperation({
-    summary: 'Bulk update display_order for manual section ordering (manager)',
+    summary:
+      'Bulk update display_order for manual section ordering (admin/superadmin)',
   })
   reorder(@Body() body: { items: { id: string; display_order: number | null }[] }) {
     return this.service.reorder(body?.items || []);

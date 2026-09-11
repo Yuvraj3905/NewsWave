@@ -3,10 +3,12 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { LessThanOrEqual, Not, Repository } from 'typeorm';
+import { resolvePublishState } from './scheduling.util';
 import { Article } from './article.entity';
 import {
   ArticleTranslation,
@@ -26,6 +28,11 @@ import { MediaService } from '../media/media.service';
 import { WebhookService } from '../webhook/webhook.service';
 import { SocialService } from '../social/social.service';
 
+// ponytail: 15 min, deliberately above Neon's 5-min autosuspend so the DB
+// can scale to zero between sweeps. A 60s sweep keeps compute hot 24/7 and
+// burns the free compute-hour quota in about a week. Lower only on a paid DB.
+const SCHEDULE_SWEEP_MS = Number(process.env.SCHEDULE_SWEEP_MS ?? 900_000);
+
 const slugify = (text: string) => {
   const base = text
     .toLowerCase()
@@ -34,6 +41,12 @@ const slugify = (text: string) => {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
   return base.slice(0, 200);
+};
+
+// Trim and coerce blank SEO inputs to null so we store clean nulls, not ''.
+const emptyToNull = (v?: string | null): string | null => {
+  const t = (v ?? '').trim();
+  return t === '' ? null : t;
 };
 
 const publicViews = (id: string): number => {
@@ -60,8 +73,9 @@ const applyLang = (article: Article, lang: ArticleLanguage): Article => {
 };
 
 @Injectable()
-export class ArticlesService implements OnModuleInit {
+export class ArticlesService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(ArticlesService.name);
+  private sweepTimer?: NodeJS.Timeout;
 
   constructor(
     @InjectRepository(Article)
@@ -93,6 +107,36 @@ export class ArticlesService implements OnModuleInit {
     } catch (err) {
       this.logger.warn(
         `published_at backfill skipped: ${(err as Error).message}`,
+      );
+    }
+
+    // Render spins the instance down when idle, so any external cron hitting
+    // /scheduler/tick misses schedules that came due while we were asleep.
+    // Catch up on boot, then self-tick while we stay awake.
+    await this.runDueSweep('startup catch-up');
+    // ponytail: setInterval on a single instance. Move to a real scheduler
+    // (or keep the external cron as backup) if the API ever runs >1 replica —
+    // each replica would sweep, but publishDue is idempotent so it only
+    // costs duplicate webhook dispatches.
+    this.sweepTimer = setInterval(() => {
+      void this.runDueSweep('interval');
+    }, SCHEDULE_SWEEP_MS);
+    this.sweepTimer.unref();
+  }
+
+  onModuleDestroy() {
+    if (this.sweepTimer) clearInterval(this.sweepTimer);
+  }
+
+  private async runDueSweep(reason: string) {
+    try {
+      const { published } = await this.publishDue();
+      if (published) {
+        this.logger.log(`Scheduler sweep (${reason}) published ${published}`);
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Scheduler sweep (${reason}) failed: ${(err as Error).message}`,
       );
     }
   }
@@ -142,16 +186,21 @@ export class ArticlesService implements OnModuleInit {
       );
       if (uploaded) imageUrl = uploaded;
     } else if (dto.image_url?.trim()) {
-      imageUrl = dto.image_url.trim();
+      imageUrl = this.mediaService.watermarkUrl(dto.image_url.trim());
     }
 
-    const slug = await this.generateUniqueSlug(dto.title);
+    const slug = await this.generateUniqueSlug(dto.slug?.trim() || dto.title);
     const categories = dto.category_ids?.length
       ? await this.categoriesService.findByIds(dto.category_ids)
       : [];
     const locations = dto.location_ids?.length
       ? await this.locationsService.findByIds(dto.location_ids)
       : [];
+
+    const state = resolvePublishState(
+      { scheduled_at: dto.scheduled_at, published: dto.published },
+      Date.now(),
+    );
 
     const article = this.repo.create({
       title: dto.title,
@@ -160,41 +209,85 @@ export class ArticlesService implements OnModuleInit {
       content: dto.content,
       author: dto.author,
       image_url: imageUrl,
-      published: dto.published ?? true,
-      published_at: dto.published_at ? new Date(dto.published_at) : new Date(),
+      published: state.published,
+      published_at:
+        state.published_at ??
+        (dto.published_at ? new Date(dto.published_at) : new Date()),
+      scheduled_at: state.scheduled_at,
       display_order:
         dto.display_order === undefined ? null : dto.display_order,
+      meta_title: emptyToNull(dto.meta_title),
+      meta_description: emptyToNull(dto.meta_description),
+      focus_keyword: emptyToNull(dto.focus_keyword),
+      canonical_url: emptyToNull(dto.canonical_url),
       categories,
       locations,
     });
 
     const saved = await this.repo.save(article);
 
+    // Scheduled (published=false) articles dispatch nothing now — the scheduler
+    // tick fires the webhook when it flips them live.
     if (saved.published) {
-      const publicUrl = `${process.env.PUBLIC_SITE_URL || ''}/article/${saved.slug}`;
-      const payload = {
-        id: saved.id,
-        title: saved.title,
-        slug: saved.slug,
-        description: saved.description,
-        image_url: saved.image_url,
-        url: publicUrl,
-        categories: categories.map((c) => c.name),
-        locations: locations.map((l) => l.name),
-        published_at: saved.created_at.toISOString(),
-      };
-      await this.webhookService.dispatch(payload);
-      const targets = {
+      await this.dispatchPublish(saved, {
         x: !!dto.post_to_x,
         facebook: !!dto.post_to_facebook,
         instagram: !!dto.post_to_instagram,
-      };
-      if (targets.x || targets.facebook || targets.instagram) {
-        await this.socialService.dispatch(payload, targets);
-      }
+      });
     }
 
     return saved;
+  }
+
+  private async dispatchPublish(
+    article: Article,
+    targets?: { x: boolean; facebook: boolean; instagram: boolean },
+  ) {
+    const publicUrl = `${process.env.PUBLIC_SITE_URL || ''}/article/${article.slug}`;
+    const payload = {
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      description: article.description,
+      image_url: article.image_url,
+      url: publicUrl,
+      categories: (article.categories || []).map((c) => c.name),
+      locations: (article.locations || []).map((l) => l.name),
+      published_at: (article.published_at || article.created_at).toISOString(),
+    };
+    await this.webhookService.dispatch(payload);
+    if (targets && (targets.x || targets.facebook || targets.instagram)) {
+      await this.socialService.dispatch(payload, targets);
+    }
+  }
+
+  // Called by the scheduler tick endpoint (external cron on free tier).
+  // Publishes every article whose scheduled_at has arrived. NULL scheduled_at
+  // rows never match the <= comparison, so plain drafts are untouched.
+  async publishDue() {
+    const now = new Date();
+    const due = await this.repo.find({
+      where: { published: false, scheduled_at: LessThanOrEqual(now) },
+      relations: ['categories', 'locations'],
+    });
+    let published = 0;
+    for (const article of due) {
+      article.published = true;
+      // ponytail: scheduled social targets aren't persisted, so auto-publish
+      // fires the webhook only. Add post_to_* columns if per-article social
+      // on schedule is needed.
+      const saved = await this.repo.save(article);
+      try {
+        await this.dispatchPublish(saved);
+      } catch (err) {
+        this.logger.warn(
+          `scheduled publish dispatch failed for ${saved.id}: ${(err as Error).message}`,
+        );
+      }
+      published += 1;
+    }
+    if (published) this.logger.log(`Auto-published ${published} scheduled article(s)`);
+    return { published };
   }
 
   async list(query: ListArticlesDto) {
@@ -373,9 +466,27 @@ export class ArticlesService implements OnModuleInit {
   ): Promise<Article> {
     const article = await this.findById(id);
 
-    if (dto.title && dto.title !== article.title) {
+    // Explicit slug edit wins; otherwise regenerate from a changed title.
+    if (dto.slug?.trim()) {
+      article.slug = await this.generateUniqueSlug(dto.slug.trim(), id);
+      if (dto.title) article.title = dto.title;
+    } else if (dto.title && dto.title !== article.title) {
       article.title = dto.title;
       article.slug = await this.generateUniqueSlug(dto.title, id);
+    } else if (dto.title) {
+      article.title = dto.title;
+    }
+    if (dto.meta_title !== undefined) {
+      article.meta_title = emptyToNull(dto.meta_title);
+    }
+    if (dto.meta_description !== undefined) {
+      article.meta_description = emptyToNull(dto.meta_description);
+    }
+    if (dto.focus_keyword !== undefined) {
+      article.focus_keyword = emptyToNull(dto.focus_keyword);
+    }
+    if (dto.canonical_url !== undefined) {
+      article.canonical_url = emptyToNull(dto.canonical_url);
     }
     if (dto.description !== undefined) article.description = dto.description;
     if (dto.content !== undefined) article.content = dto.content;
@@ -385,6 +496,19 @@ export class ArticlesService implements OnModuleInit {
       article.published_at = dto.published_at
         ? new Date(dto.published_at)
         : null;
+    }
+    if (dto.scheduled_at !== undefined) {
+      const state = resolvePublishState(
+        { scheduled_at: dto.scheduled_at, published: article.published },
+        Date.now(),
+      );
+      article.scheduled_at = state.scheduled_at;
+      if (state.scheduled_at) {
+        // Future schedule: hide until it fires, stamp the display date to match.
+        article.published = false;
+        article.published_at = state.published_at;
+      }
+      // Cleared or past schedule: leave published/published_at as set above.
     }
     if (dto.display_order !== undefined) {
       article.display_order = dto.display_order;
@@ -408,7 +532,7 @@ export class ArticlesService implements OnModuleInit {
       );
       if (uploaded) article.image_url = uploaded;
     } else if (dto.image_url?.trim()) {
-      article.image_url = dto.image_url.trim();
+      article.image_url = this.mediaService.watermarkUrl(dto.image_url.trim());
     }
 
     return this.repo.save(article);
@@ -604,7 +728,7 @@ export class ArticlesService implements OnModuleInit {
     });
     const img = this.imageRepo.create({
       article_id: articleId,
-      url,
+      url: this.mediaService.watermarkUrl(url),
       alt,
       position: existing,
     });
