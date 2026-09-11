@@ -19,7 +19,7 @@ const STATIC_PATHS: {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = (
-    process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://newswavetv.com'
   ).replace(/\/$/, '');
   const now = new Date();
 
@@ -32,17 +32,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   );
 
-  let articleEntries: MetadataRoute.Sitemap = [];
+  // ponytail: backend caps limit at 100, so page through. Hard stop at MAX_URLS
+  // keeps one sitemap under the 50k spec limit; split into a sitemap index past that.
+  const PAGE = 100;
+  const MAX_URLS = 5000;
+  const articleEntries: MetadataRoute.Sitemap = [];
   try {
-    const res = await api.listArticles({ limit: 1000 });
-    articleEntries = res.items.map((a) => ({
-      url: `${base}/article/${a.slug}`,
-      lastModified: new Date(a.updated_at || a.created_at),
-      changeFrequency: 'daily',
-      priority: 0.8,
-    }));
+    for (let offset = 0; offset < MAX_URLS; offset += PAGE) {
+      const res = await api.listArticles({ limit: PAGE, offset });
+      articleEntries.push(
+        ...res.items.map((a) => ({
+          url: `${base}/article/${a.slug}`,
+          lastModified: new Date(a.updated_at || a.created_at),
+          changeFrequency: 'daily' as const,
+          priority: 0.8,
+        })),
+      );
+      if (res.items.length < PAGE || articleEntries.length >= res.total) break;
+    }
   } catch {
-    articleEntries = [];
+    // partial list beats no list
   }
 
   return [...staticEntries, ...articleEntries];
