@@ -5,6 +5,7 @@ import {
   IsISO8601,
   IsOptional,
   IsString,
+  MaxLength,
   MinLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
@@ -37,6 +38,7 @@ export class CreateArticleDto {
   @ApiProperty()
   @IsString()
   @MinLength(3)
+  @MaxLength(300)
   title: string;
 
   @ApiPropertyOptional()
@@ -89,6 +91,15 @@ export class CreateArticleDto {
 
   @ApiPropertyOptional({
     description:
+      'Auto-publish date/time (ISO 8601). When set to a future time the article is saved as unpublished and goes live automatically at this time. Send an empty string to clear a schedule.',
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  @IsISO8601()
+  scheduled_at?: string | null;
+
+  @ApiPropertyOptional({
+    description:
       'Manual sort priority. Lower numbers appear first. NULL means default date-based ordering.',
   })
   @IsOptional()
@@ -98,6 +109,37 @@ export class CreateArticleDto {
     return Number.isFinite(n) ? n : null;
   })
   display_order?: number | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Custom URL slug. Auto-generated from the title when omitted. Editing on an existing article changes its public URL.',
+  })
+  @IsOptional()
+  @IsString()
+  slug?: string;
+
+  @ApiPropertyOptional({ description: 'SEO title tag override (falls back to title).' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  meta_title?: string;
+
+  @ApiPropertyOptional({
+    description: 'SEO meta description override (falls back to description).',
+  })
+  @IsOptional()
+  @IsString()
+  meta_description?: string;
+
+  @ApiPropertyOptional({ description: 'Focus keyword for on-page SEO checks.' })
+  @IsOptional()
+  @IsString()
+  focus_keyword?: string;
+
+  @ApiPropertyOptional({ description: 'Canonical URL override.' })
+  @IsOptional()
+  @IsString()
+  canonical_url?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

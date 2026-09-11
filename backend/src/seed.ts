@@ -1,7 +1,8 @@
 import { INestApplicationContext, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { Manager } from './managers/manager.entity';
+import { Manager, ManagerRole } from './managers/manager.entity';
+import { ManagersService } from './managers/managers.service';
 import { CategoriesService } from './categories/categories.service';
 import { LocationsService } from './locations/locations.service';
 
@@ -32,7 +33,7 @@ export async function seedManager(app: INestApplicationContext) {
 
   const username = process.env.SEED_MANAGER_USERNAME || 'admin';
   const password = process.env.SEED_MANAGER_PASSWORD || 'changeme123';
-  const role = (process.env.SEED_MANAGER_ROLE as 'admin' | 'editor') || 'admin';
+  const role = (process.env.SEED_MANAGER_ROLE as ManagerRole) || 'superadmin';
 
   const existing = await managerRepo.findOne({ where: { username } });
   if (!existing) {
@@ -40,7 +41,15 @@ export async function seedManager(app: INestApplicationContext) {
     await managerRepo.save(
       managerRepo.create({ username, password_hash, role }),
     );
-    logger.log(`Seeded manager: ${username}`);
+    logger.log(`Seeded manager: ${username} (${role})`);
+  }
+
+  // Existing installs seeded a plain 'admin'. Guarantee a superadmin exists so
+  // someone can always manage users.
+  try {
+    await app.get(ManagersService).ensureSuperadmin(username);
+  } catch (err: any) {
+    logger.warn(`Superadmin bootstrap skipped: ${err?.message || err}`);
   }
 
   try {

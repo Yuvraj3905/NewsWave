@@ -58,13 +58,21 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   try {
     const article = await getArticle(params.slug, readLang());
+    const title = article.meta_title || article.title;
+    const description =
+      article.meta_description ||
+      article.description ||
+      article.title + ' - NewsWave article';
     return {
-      title: article.title,
-      description:
-        article.description || article.title + ' - NewsWave article',
+      title,
+      description,
+      alternates: {
+        canonical: article.canonical_url || `/article/${article.slug}`,
+      },
       openGraph: {
-        title: article.title,
-        description: article.description || '',
+        title,
+        description,
+        url: `/article/${article.slug}`,
         images: article.image_url ? [article.image_url] : undefined,
         type: 'article',
       },
@@ -88,6 +96,28 @@ export default async function ArticlePage({ params }: PageProps) {
     (a, b) => a.position - b.position,
   );
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: article.meta_title || article.title,
+    description:
+      article.meta_description || article.description || undefined,
+    image: article.image_url ? [article.image_url] : undefined,
+    datePublished: article.published_at || article.created_at,
+    dateModified:
+      article.updated_at || article.published_at || article.created_at,
+    author: [
+      { '@type': 'Person', name: article.author || 'NewsWave Desk' },
+    ],
+    publisher: { '@type': 'Organization', name: 'NewsWave' },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${siteUrl}/article/${article.slug}`,
+    },
+    keywords: article.focus_keyword || undefined,
+  };
+
   const rawContent = article.content || '';
   const isHtml = /^\s*</.test(rawContent);
   const safeHtml = isHtml ? sanitizeHtml(rawContent, SANITIZE_OPTIONS) : '';
@@ -100,6 +130,13 @@ export default async function ArticlePage({ params }: PageProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
+      <script
+        type="application/ld+json"
+        // Escape '<' so a field containing '</script>' can't break out of the tag.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
       <div className="grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <article className="bg-white rounded-lg border border-navy-100 shadow-card overflow-hidden dark:bg-navy-800 dark:border-navy-700">
           {article.image_url && (

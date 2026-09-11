@@ -49,9 +49,28 @@ export class Article {
   @Column({ type: 'timestamptz', nullable: true })
   published_at: Date | null;
 
+  // Auto-publish time. When set and in the future, the article is saved with
+  // published=false and stays hidden until a scheduler tick flips it live.
+  @Index()
+  @Column({ type: 'timestamptz', nullable: true })
+  scheduled_at: Date | null;
+
   @Index()
   @Column({ type: 'int', nullable: true })
   display_order: number | null;
+
+  // SEO overrides. All nullable — fall back to title/description when empty.
+  @Column({ type: 'varchar', length: 300, nullable: true })
+  meta_title: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  meta_description: string | null;
+
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  focus_keyword: string | null;
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  canonical_url: string | null;
 
   @ManyToMany(() => Category, (category) => category.articles, {
     cascade: false,
