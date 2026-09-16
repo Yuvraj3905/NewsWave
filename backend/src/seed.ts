@@ -24,6 +24,8 @@ const DEFAULT_LOCATIONS = [
   'Punjab',
   'Haryana',
   'Chandigarh',
+  'Delhi NCR',
+  'Himachal Pradesh',
 ];
 
 export async function seedManager(app: INestApplicationContext) {

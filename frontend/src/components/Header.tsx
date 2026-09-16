@@ -9,12 +9,20 @@ import { ThemeToggle } from './ThemeToggle';
 import { api } from '@/lib/api';
 import { Category, Language, Location } from '@/lib/types';
 
-const FALLBACK_LOCATIONS = ['Punjab', 'Haryana', 'Chandigarh'];
+const FALLBACK_LOCATIONS = [
+  'Punjab',
+  'Haryana',
+  'Chandigarh',
+  'Delhi NCR',
+  'Himachal Pradesh',
+];
 
 const REGIONAL_LOCATION_SLUGS = new Set([
   'punjab',
   'haryana',
   'chandigarh',
+  'delhi-ncr',
+  'himachal-pradesh',
 ]);
 
 const FALLBACK_CATEGORIES = [
