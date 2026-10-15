@@ -7,8 +7,8 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThanOrEqual, Not, Repository } from 'typeorm';
-import { resolvePublishState } from './scheduling.util';
+import { IsNull, LessThanOrEqual, Not, Repository } from 'typeorm';
+import { nextSweepDelay, resolvePublishState } from './scheduling.util';
 import { Article } from './article.entity';
 import {
   ArticleTranslation,
@@ -27,11 +27,6 @@ import { LocationsService } from '../locations/locations.service';
 import { MediaService } from '../media/media.service';
 import { WebhookService } from '../webhook/webhook.service';
 import { SocialService } from '../social/social.service';
-
-// ponytail: 15 min, deliberately above Neon's 5-min autosuspend so the DB
-// can scale to zero between sweeps. A 60s sweep keeps compute hot 24/7 and
-// burns the free compute-hour quota in about a week. Lower only on a paid DB.
-const SCHEDULE_SWEEP_MS = Number(process.env.SCHEDULE_SWEEP_MS ?? 900_000);
 
 const slugify = (text: string) => {
   const base = text
@@ -112,20 +107,36 @@ export class ArticlesService implements OnModuleInit, OnModuleDestroy {
 
     // Render spins the instance down when idle, so any external cron hitting
     // /scheduler/tick misses schedules that came due while we were asleep.
-    // Catch up on boot, then self-tick while we stay awake.
+    // Catch up on boot; publishDue then arms a timer for the next schedule.
     await this.runDueSweep('startup catch-up');
-    // ponytail: setInterval on a single instance. Move to a real scheduler
-    // (or keep the external cron as backup) if the API ever runs >1 replica —
-    // each replica would sweep, but publishDue is idempotent so it only
-    // costs duplicate webhook dispatches.
-    this.sweepTimer = setInterval(() => {
-      void this.runDueSweep('interval');
-    }, SCHEDULE_SWEEP_MS);
-    this.sweepTimer.unref();
   }
 
   onModuleDestroy() {
-    if (this.sweepTimer) clearInterval(this.sweepTimer);
+    if (this.sweepTimer) clearTimeout(this.sweepTimer);
+  }
+
+  // One timer aimed at the earliest pending scheduled_at instead of polling,
+  // so the DB is only woken when something is actually due. Fixed-interval
+  // polling kept Neon compute awake and burned the free compute quota.
+  // ponytail: single-instance timer. With >1 replica each arms its own;
+  // publishDue is idempotent so that only costs duplicate webhook dispatches.
+  private async armNextSweep() {
+    if (this.sweepTimer) clearTimeout(this.sweepTimer);
+    this.sweepTimer = undefined;
+    try {
+      const next = await this.repo.findOne({
+        where: { published: false, scheduled_at: Not(IsNull()) },
+        order: { scheduled_at: 'ASC' },
+        select: { id: true, scheduled_at: true },
+      });
+      if (!next?.scheduled_at) return;
+      this.sweepTimer = setTimeout(() => {
+        void this.runDueSweep('timer');
+      }, nextSweepDelay(next.scheduled_at, Date.now()));
+      this.sweepTimer.unref();
+    } catch (err) {
+      this.logger.warn(`Arming scheduler failed: ${(err as Error).message}`);
+    }
   }
 
   private async runDueSweep(reason: string) {
@@ -225,6 +236,7 @@ export class ArticlesService implements OnModuleInit, OnModuleDestroy {
     });
 
     const saved = await this.repo.save(article);
+    if (saved.scheduled_at) await this.armNextSweep();
 
     // Scheduled (published=false) articles dispatch nothing now — the scheduler
     // tick fires the webhook when it flips them live.
@@ -287,6 +299,7 @@ export class ArticlesService implements OnModuleInit, OnModuleDestroy {
       published += 1;
     }
     if (published) this.logger.log(`Auto-published ${published} scheduled article(s)`);
+    await this.armNextSweep();
     return { published };
   }
 
@@ -535,7 +548,9 @@ export class ArticlesService implements OnModuleInit, OnModuleDestroy {
       article.image_url = this.mediaService.watermarkUrl(dto.image_url.trim());
     }
 
-    return this.repo.save(article);
+    const saved = await this.repo.save(article);
+    if (dto.scheduled_at !== undefined) await this.armNextSweep();
+    return saved;
   }
 
   async remove(id: string) {

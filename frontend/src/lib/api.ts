@@ -17,6 +17,8 @@ import {
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
+const PUBLIC_REVALIDATE_SECONDS = 300;
+
 interface RequestOptions extends RequestInit {
   token?: string;
   query?: Record<string, string | number | boolean | undefined>;
@@ -50,10 +52,19 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   }
   if (token) finalHeaders.Authorization = `Bearer ${token}`;
 
+  // Public GETs go through Next's data cache so page views and crawlers don't
+  // each hit the API (and wake the Neon DB). Authed/mutating calls stay fresh.
+  // ponytail: flat TTL; add on-demand revalidateTag on publish if 5-min
+  // staleness for new articles becomes a problem.
+  const isPublicGet = !token && (!rest.method || rest.method === 'GET');
   const res = await fetch(url, {
     ...rest,
     headers: finalHeaders,
-    cache: rest.cache ?? 'no-store',
+    ...(rest.cache
+      ? { cache: rest.cache }
+      : isPublicGet
+        ? { next: { revalidate: PUBLIC_REVALIDATE_SECONDS } }
+        : { cache: 'no-store' as const }),
   });
 
   if (!res.ok) {
