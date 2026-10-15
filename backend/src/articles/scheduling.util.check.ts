@@ -1,6 +1,10 @@
 // Runnable self-check (no jest in this project): npx ts-node src/articles/scheduling.util.check.ts
 import { strict as assert } from 'assert';
-import { resolvePublishState } from './scheduling.util';
+import {
+  MAX_TIMEOUT_MS,
+  nextSweepDelay,
+  resolvePublishState,
+} from './scheduling.util';
 
 const NOW = 1_000_000; // fixed clock
 const future = new Date(NOW + 60_000).toISOString();
@@ -31,5 +35,10 @@ assert.equal(s.scheduled_at, null);
 s = resolvePublishState({ scheduled_at: null, published: true }, NOW);
 assert.equal(s.published, true);
 assert.equal(s.scheduled_at, null);
+
+// nextSweepDelay: future -> exact gap, overdue -> 0, far future -> clamped
+assert.equal(nextSweepDelay(new Date(NOW + 60_000), NOW), 60_000);
+assert.equal(nextSweepDelay(new Date(NOW - 60_000), NOW), 0);
+assert.equal(nextSweepDelay(new Date(NOW + 90 * 86_400_000), NOW), MAX_TIMEOUT_MS);
 
 console.log('scheduling.util: all checks passed');

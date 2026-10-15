@@ -29,3 +29,11 @@ export function resolvePublishState(
     published_at: null,
   };
 }
+
+// Node's setTimeout overflows above 2^31-1 ms (~24.8 days) and fires
+// immediately, so clamp; an early wake just finds nothing due and re-arms.
+export const MAX_TIMEOUT_MS = 2 ** 31 - 1;
+
+export function nextSweepDelay(scheduledAt: Date, nowMs: number): number {
+  return Math.min(Math.max(0, scheduledAt.getTime() - nowMs), MAX_TIMEOUT_MS);
+}
